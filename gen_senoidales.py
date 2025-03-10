@@ -39,4 +39,3 @@ Test_seno = np.sin( 2 * np.pi * f0 * tt  )
 
 plt.figure(1)
 line_hdls = plt.plot(tt, Test_seno)
-# prueba status y modificaciones
