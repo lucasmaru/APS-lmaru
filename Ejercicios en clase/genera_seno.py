@@ -19,13 +19,18 @@ import matplotlib.pyplot as plt
 #%% Declaramos nuestra funcion para la señal 
 
   
-# Datos generales de la simulación
+# Datos generales de la simulación, recordar que necesito fs frec de sampling,
+#fo frecuencia de la señal y N cantidad total de muestras
+
 fs = 1000.0     # frecuencia de muestreo (Hz)
-N = 1000        # cantidad de muestras
+ts = 1/fs       # tiempo de muestreo
+# uno es el reciproco del otro, me dan la misma info en distintos dominios
+
+N = 1000        # cantidad total de muestras
+
 f0 = 100        # frecuencia de la señal
 
-ts = 1/fs       # tiempo de muestreo
-df = fs/N       # resolución espectral
+df = fs/N       # resolución espectral, no lo utilizamos en este codigo
 
 # grilla de sampleo temporal 
 tt = np.linspace(0, (N-1)*ts, N).flatten()
@@ -39,3 +44,5 @@ Test_seno = np.sin( 2 * np.pi * f0 * tt  )
 
 plt.figure(1)
 line_hdls = plt.plot(tt, Test_seno)
+#Para que el gráfico lo genere en una ventana aparte corro la siguiente linea:
+# %matplotlib qt
