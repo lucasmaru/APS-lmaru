@@ -36,14 +36,43 @@ import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 #%% Declaramos nuestra funcion
-def gen_senoidal(Vmax, dc, ff, ph, nn, fs):
+def gen_senoidal(Vmax, dc, f0, ph, nn, fs):
     #el tiempo de sampleo me lo da la fs
     ts=1/fs
     #armo el eje temporal, no termino de entende "(N-1)*ts"
     tt = np.linspace(0, (nn-1)*ts, nn).flatten()
-    sen_gen = Vmax * np.sin(2 * np.pi *ff * tt + ph)
+    sen_gen = Vmax * np.sin(2 * np.pi *f0 * tt + ph)
     return (tt , sen_gen)
 
-(t , y) = gen_senoidal(Vmax=1, dc=0, ff=100, ph=0, nn=1000, fs=1000)
+(t0 , y0) = gen_senoidal(Vmax=1, dc=0, f0=100, ph=0, nn=1000, fs=1000)
+(t1 , y1) = gen_senoidal(Vmax=1, dc=0, f0=500, ph=0, nn=1000, fs=1000)
+(t2 , y2) = gen_senoidal(Vmax=1, dc=0, f0=999, ph=0, nn=1000, fs=1000)
+(t3 , y3) = gen_senoidal(Vmax=1, dc=0, f0=1001, ph=0, nn=1000, fs=1000)
+(t4 , y4) = gen_senoidal(Vmax=1, dc=0, f0=2001, ph=0, nn=1000, fs=1000)
+
 plt.figure(1)
-seno = plt.plot(t, y)
+plt.subplot(2,3,1)
+seno0 = plt.plot(t0, y0)
+plt.grid() # Activa grilla en el gráfico
+plt.title('fo=100hz') # Título
+
+plt.subplot(2,3,2)
+seno1 = plt.plot(t1, y1)
+plt.grid() # Activa grilla en el gráfico
+plt.title('fo=500hz') # Título
+plt.axis([min(t1), max(t1), -1, 1])
+
+plt.subplot(2,3,3)
+seno2 = plt.plot(t2, y2)
+plt.grid() # Activa grilla en el gráfico
+plt.title('fo=999hz') # Título
+
+plt.subplot(2,3,4)
+seno3 = plt.plot(t3, y3)
+plt.grid() # Activa grilla en el gráfico
+plt.title('fo=1001hz') # Título
+
+plt.subplot(2,3,5)
+seno4 = plt.plot(t4, y4)
+plt.grid() # Activa grilla en el gráfico
+plt.title('fo=2001hz') # Título
