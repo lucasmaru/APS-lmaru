@@ -35,7 +35,7 @@ import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
 
-#%% Declaramos nuestra funcion
+# Declaramos nuestra funcion
 def gen_senoidal(Vmax, dc, f0, ph, nn, fs):
     #el tiempo de sampleo me lo da la fs
     ts=1/fs
@@ -44,8 +44,11 @@ def gen_senoidal(Vmax, dc, f0, ph, nn, fs):
     sen_gen = Vmax * np.sin(2 * np.pi *f0 * tt + ph)
     return (tt , sen_gen)
 
+#señal cómodamente muestreada según el criterio que definimos
 (t0 , y0) = gen_senoidal(Vmax=1, dc=0, f0=100, ph=0, nn=1000, fs=1000)
+#Señal en el lìmite teórico
 (t1 , y1) = gen_senoidal(Vmax=1, dc=0, f0=500, ph=0, nn=1000, fs=1000)
+#Excedidas del límite teórico
 (t2 , y2) = gen_senoidal(Vmax=1, dc=0, f0=999, ph=0, nn=1000, fs=1000)
 (t3 , y3) = gen_senoidal(Vmax=1, dc=0, f0=1001, ph=0, nn=1000, fs=1000)
 (t4 , y4) = gen_senoidal(Vmax=1, dc=0, f0=2001, ph=0, nn=1000, fs=1000)
@@ -60,7 +63,7 @@ plt.subplot(2,3,2)
 seno1 = plt.plot(t1, y1)
 plt.grid() # Activa grilla en el gráfico
 plt.title('fo=500hz') # Título
-plt.axis([min(t1), max(t1), -1, 1])
+plt.axis([min(t1), max(t1), -1, 1])#fijo el eje y para que sea igual en cada grafico
 
 plt.subplot(2,3,3)
 seno2 = plt.plot(t2, y2)
