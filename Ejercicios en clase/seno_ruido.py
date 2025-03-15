@@ -3,10 +3,11 @@
 """
 Created on Thu Mar 13 14:58:13 2025
 
-@author: mariano
+@author: Lucas Marú
 """
 
 #%% módulos y funciones a importar
+
 import numpy as np
 import matplotlib as mpl
 import matplotlib.pyplot as plt
@@ -16,26 +17,31 @@ import math
 
 fs=1000 # frecuencia de muestreo (Hz)
 N =1000  # cantidad de muestras
+ts = 1/fs # tiempo de muestreo
+df = fs/N # resolución espectral
+f0 = 1
 
-# Datos del ADC
+#%% Datos del ADC
+
 B = 8 # bits
 Vf = 0.001# rango simétrico de +/- Vf Volts
 q = (2*vf)/2**(B-1) # paso de cuantización de q Volts
 
-# datos del ruido (potencia de la señal normalizada, es decir 1 W)
+#%% Datos del ADC
+
+B = 8 # bits
+Vf = 0.001# rango simétrico de +/- Vf Volts
+q = (2*vf)/2**(B-1) # paso de cuantización de q Volts
+
+#%% datos del ruido (potencia de la señal normalizada, es decir 1 W)
+
 pot_ruido_cuant = # Watts 
 kn = 1. # escala de la potencia de ruido analógico
 pot_ruido_analog = pot_ruido_cuant * kn # 
 
-ts = 1/fs # tiempo de muestreo
-df = fs/N # resolución espectral
-# %% Genera seno
-fs=1000 # frecuencia de muestreo (Hz)
-N =1000  # cantidad de muestras
-ts = 1/fs # tiempo de muestreo
-df = fs/N # resolución espectral
-f0 = 1# grilla de sampleo temporal 
-tt = np.linspace(0, (N-1)*ts, N).flatten()
+#%% Genera seno
+
+tt = np.linspace(0, (N-1)*ts, N).flatten() #grilla de sampleo temporal 
 A = math.sqrt(2)
 # Declaro funcion senoidal 
 Test_seno = A*np.sin( 2 * np.pi * f0 * tt  )
