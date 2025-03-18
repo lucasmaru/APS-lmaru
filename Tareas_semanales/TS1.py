@@ -45,7 +45,7 @@ def gen_senoidal(Vmax, dc, f0, ph, nn, fs):
     return (tt , sen_gen)
 
 #señal cómodamente muestreada según el criterio que definimos
-(t0 , y0) = gen_senoidal(Vmax=1, dc=0, f0=100, ph=0, nn=1000, fs=1000)
+#(t0 , y0) = gen_senoidal(Vmax=1, dc=0, f0=100, ph=0, nn=1000, fs=1000)
 #Señal en el lìmite teórico
 (t1 , y1) = gen_senoidal(Vmax=1, dc=0, f0=500, ph=0, nn=1000, fs=1000)
 #Excedidas del límite teórico
@@ -53,29 +53,29 @@ def gen_senoidal(Vmax, dc, f0, ph, nn, fs):
 (t3 , y3) = gen_senoidal(Vmax=1, dc=0, f0=1001, ph=0, nn=1000, fs=1000)
 (t4 , y4) = gen_senoidal(Vmax=1, dc=0, f0=2001, ph=0, nn=1000, fs=1000)
 
-plt.figure(1)
+"""plt.figure(1)
 plt.subplot(2,3,1)
 seno0 = plt.plot(t0, y0)
 plt.grid() # Activa grilla en el gráfico
-plt.title('fo=100hz') # Título
+plt.title('fo=100hz') # Título"""
 
-plt.subplot(2,3,2)
+plt.subplot(2,2,1)
 seno1 = plt.plot(t1, y1)
 plt.grid() # Activa grilla en el gráfico
 plt.title('fo=500hz') # Título
 plt.axis([min(t1), max(t1), -1, 1])#fijo el eje y para que sea igual en cada grafico
 
-plt.subplot(2,3,3)
+plt.subplot(2,2,2)
 seno2 = plt.plot(t2, y2)
 plt.grid() # Activa grilla en el gráfico
 plt.title('fo=999hz') # Título
 
-plt.subplot(2,3,4)
+plt.subplot(2,2,3)
 seno3 = plt.plot(t3, y3)
 plt.grid() # Activa grilla en el gráfico
 plt.title('fo=1001hz') # Título
 
-plt.subplot(2,3,5)
+plt.subplot(2,2,4)
 seno4 = plt.plot(t4, y4)
 plt.grid() # Activa grilla en el gráfico
 plt.title('fo=2001hz') # Título
