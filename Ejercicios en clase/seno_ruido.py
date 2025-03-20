@@ -19,34 +19,39 @@ N =1000  # cantidad de muestras
 
 # Datos del ADC
 B = 8 # bits
-Vf = 0.001# rango simétrico de +/- Vf Volts
-q = (2*vf)/2**(B-1) # paso de cuantización de q Volts
+vf = 10# rango simétrico de +/- Vf Volts
+q = (vf)/2**(B-1) # paso de cuantización de q Volts
 
 # datos del ruido (potencia de la señal normalizada, es decir 1 W)
-pot_ruido_cuant = # Watts 
+pot_ruido_cuant = (q**2)/12# Watts 
 kn = 1. # escala de la potencia de ruido analógico
 pot_ruido_analog = pot_ruido_cuant * kn # 
 
-ts = 1/fs # tiempo de muestreo
-df = fs/N # resolución espectral
 # %% Genera seno
-fs=1000 # frecuencia de muestreo (Hz)
-N =1000  # cantidad de muestras
 ts = 1/fs # tiempo de muestreo
 df = fs/N # resolución espectral
 f0 = 1# grilla de sampleo temporal 
 tt = np.linspace(0, (N-1)*ts, N).flatten()
 A = math.sqrt(2)
 # Declaro funcion senoidal 
-Test_seno = A*np.sin( 2 * np.pi * f0 * tt  )
+xx = A*np.sin( 2 * np.pi * f0 * tt  )
 
 plt.figure(1)
-line_hdls = plt.plot(tt, Test_seno)
-var = np.var(Test_seno)
+seno = plt.plot(tt, xx)
+varx = np.var(xx)
 
 # %%Genera ruido
-noise = np.random.normal(tt,)
+sigma = math.sqrt(pot_ruido_analog)
+noise = np.random.normal(0,sigma,N)#media, sigma y cantidad
+plt.figure(2)
+ruido = plt.plot(tt, noise)
+varn = np.var(noise)
 
+xr = xx + noise
+plt.figure(3)
+plt.plot(tt,xr)
+print(varn)
+print(pot_ruido_analog)
 #%% Experimento: 
 """
    Se desea simular el efecto de la cuantización sobre una señal senoidal de 
@@ -59,18 +64,15 @@ noise = np.random.normal(tt,)
    
 """
 
-# np.random.normal
-# np.random.uniform
-
 
 # Señales
 
-analog_sig = # señal analógica sin ruido
-sr = # señal analógica de entrada al ADC (con ruido analógico)
-srq = # señal cuantizada
+analog_sig =xx # señal analógica sin ruido
+sr = xr # señal analógica de entrada al ADC (con ruido analógico)
+#srq = # señal cuantizada
 
-nn =  # señal de ruido de analógico
-nq =  # señal de ruido de cuantización
+#nn =  # señal de ruido de analógico
+#nq =  # señal de ruido de cuantización
 
 
 
