@@ -19,8 +19,8 @@ N =1000  # cantidad de muestras
 
 # Datos del ADC
 B = 8 # bits
-vf = 10# rango simétrico de +/- Vf Volts
-q = (vf)/2**(B-1) # paso de cuantización de q Volts
+Vf = 10# rango simétrico de +/- Vf Volts
+q = (Vf)/2**(B-1) # paso de cuantización de q Volts
 
 # datos del ruido (potencia de la señal normalizada, es decir 1 W)
 pot_ruido_cuant = (q**2)/12# Watts, intrinseco del ADC
@@ -32,6 +32,13 @@ ts = 1/fs # tiempo de muestreo
 df = fs/N # resolución espectral
 f0 = 1# grilla de sampleo temporal 
 tt = np.linspace(0, (N-1)*ts, N).flatten()
+"""
+   Busco los valores para los cuales esta senoidal esta normalizada, es decir 
+   que la señal tenga una varianza = 1, recordar que relacionamos la vaianza 
+   con la energia o potencia. 
+   La senoidal es x(t) = A sen ( wt + phi ), la varianza va a estar dada por 
+   Var(x) = A^2 * 1/2 por esto definimos A como la definimos 
+"""
 A = math.sqrt(2) # proceso de normalización 
 xx = A*np.sin( 2 * np.pi * f0 * tt  ) # Declaro funcion senoidal
 plt.figure(1)
@@ -54,10 +61,24 @@ var_n = np.var(noise)
 print(var_n)
 print(pot_ruido_analog)
 
-#%%% Sumo la señal analógica con el ruido
+#%% Sumo la señal analógica con el ruido
 xr = xx + noise
 plt.subplot(3,1,3)
 plt.plot(tt,xr)
+
+#%% Cuantizo
+"""
+Dividimos la señal ruidosa xr por el paso de cuantización 𝑞: xr/q
+Esto nos da una versión "escalada" de la señal, donde los valores ya no están 
+en voltios, sino en unidades de 𝑞. Es decir, si 𝑞=0.078125 V y 𝑥𝑟= 0.32 V, 
+obtenemos: 0.32 / 0.078125 ≈ 4.1
+La función np.round() redondea cada valor al entero más cercano. Para el 
+ejemplo anterior: round(4.1)=4
+Esto significa que estamos asignando cada muestra de la señal al nivel de 
+cuantización más cercano. Por último multiplicamos nuevamente por q para volver
+a la escala original en voltios
+"""
+xq = q * np.round(xr / q) # esta sola linea modela la cuantizaciòn 
 
 #%% Experimento: 
 """
@@ -76,76 +97,73 @@ plt.plot(tt,xr)
 
 analog_sig =xx # señal analógica sin ruido
 sr = xr # señal analógica de entrada al ADC (con ruido analógico)
-#srq = # señal cuantizada
+srq = xq # señal cuantizada
 
-#nn =  # señal de ruido de analógico
-#nq =  # señal de ruido de cuantización
-
-
-
+nn = xr - xx  # señal de ruido de analógico
+nq = xq - xr  # señal de ruido de cuantización
 
 #%% Visualización de resultados
 
-# # cierro ventanas anteriores
-# plt.close('all')
+# cierro ventanas anteriores
+plt.close('all')
 
-# ##################
-# # Señal temporal
-# ##################
+##################
+# Señal temporal
+##################
 
-# plt.figure(1)
+plt.figure(1)
 
 
-# plt.title('Señal muestreada por un ADC de {:d} bits - $\pm V_R= $ {:3.1f} V - q = {:3.3f} V'.format(B, Vf, q) )
-# plt.xlabel('tiempo [segundos]')
-# plt.ylabel('Amplitud [V]')
-# axes_hdl = plt.gca()
-# axes_hdl.legend()
-# plt.show()
+plt.title('Señal muestreada por un ADC de {:d} bits - $\pm V_R= $ {:3.1f} V - q = {:3.3f} V'.format(B, Vf, q) )
+plt.xlabel('tiempo [segundos]')
+plt.ylabel('Amplitud [V]')
+axes_hdl = plt.gca()
+axes_hdl.legend()
+plt.show()
 
-# #%% 
+#%% 
 
-# plt.figure(2)
-# ft_SR = 1/N*np.fft.fft( sr, axis = 0 )
-# ft_Srq = 1/N*np.fft.fft( srq, axis = 0 )
-# ft_As = 1/N*np.fft.fft( analog_sig, axis = 0)
-# ft_Nq = 1/N*np.fft.fft( nq, axis = 0 )
-# ft_Nn = 1/N*np.fft.fft( nn, axis = 0 )
+plt.figure(2)
+ft_SR = 1/N*np.fft.fft( sr, axis = 0 )
+ft_Srq = 1/N*np.fft.fft( srq, axis = 0 )
+ft_As = 1/N*np.fft.fft( analog_sig, axis = 0)
+ft_Nq = 1/N*np.fft.fft( nq, axis = 0 )
+ft_Nn = 1/N*np.fft.fft( nn, axis = 0 )
 
-# # grilla de sampleo frecuencial
-# ff = np.linspace(0, (N-1)*df, N)
+# grilla de sampleo frecuencial
+ff = np.linspace(0, (N-1)*df, N)
 
-# bfrec = ff <= fs/2
+bfrec = ff <= fs/2
 
-# Nnq_mean = np.mean(np.abs(ft_Nq)**2)
-# nNn_mean = np.mean(np.abs(ft_Nn)**2)
+Nnq_mean = np.mean(np.abs(ft_Nq)**2)
+nNn_mean = np.mean(np.abs(ft_Nn)**2)
 
-# plt.plot( ff_os[bfrec], 10* np.log10(2*np.abs(ft_As[bfrec])**2), color='orange', ls='dotted', label='$ s $ (sig.)' )
-# plt.plot( np.array([ ff_os[bfrec][0], ff_os[bfrec][-1] ]), 10* np.log10(2* np.array([nNn_mean, nNn_mean]) ), '--r', label= '$ \overline{n} = $' + '{:3.1f} dB'.format(10* np.log10(2* nNn_mean)) )
-# plt.plot( ff_os[bfrec], 10* np.log10(2*np.mean(np.abs(ft_SR)**2, axis=1)[bfrec]), ':g', label='$ s_R = s + n $' )
-# plt.plot( ff_os[bfrec], 10* np.log10(2*np.mean(np.abs(ft_Srq)**2, axis=1)[bfrec]), lw=2, label='$ s_Q = Q_{B,V_F}\{s_R\}$' )
-# plt.plot( np.array([ ff_os[bfrec][0], ff_os[bfrec][-1] ]), 10* np.log10(2* np.array([Nnq_mean, Nnq_mean]) ), '--c', label='$ \overline{n_Q} = $' + '{:3.1f} dB'.format(10* np.log10(2* Nnq_mean)) )
-# plt.plot( ff_os[bfrec], 10* np.log10(2*np.mean(np.abs(ft_Nn)**2, axis=1)[bfrec]), ':r')
-# plt.plot( ff_os[bfrec], 10* np.log10(2*np.mean(np.abs(ft_Nq)**2, axis=1)[bfrec]), ':c')
-# plt.plot( np.array([ ff[bfrec][-1], ff[bfrec][-1] ]), plt.ylim(), ':k', label='BW', lw = 0.5  )
+plt.plot( ff_os[bfrec], 10* np.log10(2*np.abs(ft_As[bfrec])**2), color='orange', ls='dotted', label='$ s $ (sig.)' )
+plt.plot( np.array([ ff_os[bfrec][0], ff_os[bfrec][-1] ]), 10* np.log10(2* np.array([nNn_mean, nNn_mean]) ), '--r', label= '$ \overline{n} = $' + '{:3.1f} dB'.format(10* np.log10(2* nNn_mean)) )
+plt.plot( ff_os[bfrec], 10* np.log10(2*np.mean(np.abs(ft_SR)**2, axis=1)[bfrec]), ':g', label='$ s_R = s + n $' )
+plt.plot( ff_os[bfrec], 10* np.log10(2*np.mean(np.abs(ft_Srq)**2, axis=1)[bfrec]), lw=2, label='$ s_Q = Q_{B,V_F}\{s_R\}$' )
+plt.plot( np.array([ ff_os[bfrec][0], ff_os[bfrec][-1] ]), 10* np.log10(2* np.array([Nnq_mean, Nnq_mean]) ), '--c', label='$ \overline{n_Q} = $' + '{:3.1f} dB'.format(10* np.log10(2* Nnq_mean)) )
+plt.plot( ff_os[bfrec], 10* np.log10(2*np.mean(np.abs(ft_Nn)**2, axis=1)[bfrec]), ':r')
+plt.plot( ff_os[bfrec], 10* np.log10(2*np.mean(np.abs(ft_Nq)**2, axis=1)[bfrec]), ':c')
+plt.plot( np.array([ ff[bfrec][-1], ff[bfrec][-1] ]), plt.ylim(), ':k', label='BW', lw = 0.5  )
 
-# plt.title('Señal muestreada por un ADC de {:d} bits - $\pm V_R= $ {:3.1f} V - q = {:3.3f} V'.format(B, Vf, q) )
-# plt.ylabel('Densidad de Potencia [dB]')
-# plt.xlabel('Frecuencia [Hz]')
-# axes_hdl = plt.gca()
-# axes_hdl.legend()
+plt.title('Señal muestreada por un ADC de {:d} bits - $\pm V_R= $ {:3.1f} V - q = {:3.3f} V'.format(B, Vf, q) )
+plt.ylabel('Densidad de Potencia [dB]')
+plt.xlabel('Frecuencia [Hz]')
+axes_hdl = plt.gca()
+axes_hdl.legend()
 
-# #############
-# # Histograma
-# #############
+#############
+# Histograma
+#############
 
-# plt.figure()
-# bins = 10
-# # plt.hist(nq.flatten(), bins=2*bins)
-# plt.hist(nqf.flatten()/(q/2), bins=2*bins)
-# # plt.plot( np.array([-q/2, -q/2, q/2, q/2]), np.array([0, N*R/bins, N*R/bins, 0]), '--r' )
-# plt.plot( np.array([-1/2, -1/2, 1/2, 1/2]), np.array([0, N*R/bins, N*R/bins, 0]), '--r' )
-# plt.title( 'Ruido de cuantización para {:d} bits - $\pm V_R= $ {:3.1f} V - q = {:3.3f} V'.format(B, Vf, q))
+plt.figure()
+bins = 10
+# plt.hist(nq.flatten(), bins=2*bins)
+plt.hist(nqf.flatten()/(q/2), bins=2*bins)
+# plt.plot( np.array([-q/2, -q/2, q/2, q/2]), np.array([0, N*R/bins, N*R/bins, 0]), '--r' )
+plt.plot( np.array([-1/2, -1/2, 1/2, 1/2]), np.array([0, N*R/bins, N*R/bins, 0]), '--r' )
+plt.title( 'Ruido de cuantización para {:d} bits - $\pm V_R= $ {:3.1f} V - q = {:3.3f} V'.format(B, Vf, q))
 
-# plt.xlabel('Pasos de cuantización (q) [V]')
+plt.xlabel('Pasos de cuantización (q) [V]')
 
