@@ -21,22 +21,16 @@ ts = 1/fs # tiempo de muestreo
 df = fs/N # resolución espectral
 f0 = 1
 
-#%% Datos del ADC
+# Datos del ADC
 
 B = 8 # bits
 vf = 10# rango simétrico de +/- Vf Volts
 q = (vf)/2**(B-1) # paso de cuantización de q Volts
 
-<<<<<<< HEAD
-#%% Datos del ADC
 
-B = 8 # bits
-Vf = 0.001# rango simétrico de +/- Vf Volts
-q = (2*vf)/2**(B-1) # paso de cuantización de q Volts
+# datos del ruido (potencia de la señal normalizada, es decir 1 W)
 
-#%% datos del ruido (potencia de la señal normalizada, es decir 1 W)
-
-pot_ruido_cuant = # Watts 
+pot_ruido_cuant = (q**2)/12# Watts 
 kn = 1. # escala de la potencia de ruido analógico
 pot_ruido_analog = pot_ruido_cuant * kn # 
 
