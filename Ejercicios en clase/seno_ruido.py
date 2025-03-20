@@ -14,61 +14,51 @@ import matplotlib.pyplot as plt
 import math
 
 #%% Datos de la simulación
-
 fs=1000 # frecuencia de muestreo (Hz)
 N =1000  # cantidad de muestras
-ts = 1/fs # tiempo de muestreo
-df = fs/N # resolución espectral
-f0 = 1
 
 # Datos del ADC
-
 B = 8 # bits
 vf = 10# rango simétrico de +/- Vf Volts
 q = (vf)/2**(B-1) # paso de cuantización de q Volts
 
-
 # datos del ruido (potencia de la señal normalizada, es decir 1 W)
-
-pot_ruido_cuant = (q**2)/12# Watts 
+pot_ruido_cuant = (q**2)/12# Watts, intrinseco del ADC
 kn = 1. # escala de la potencia de ruido analógico
-pot_ruido_analog = pot_ruido_cuant * kn # 
-
-#%% Genera seno
-
-tt = np.linspace(0, (N-1)*ts, N).flatten() #grilla de sampleo temporal 
-=======
-# datos del ruido (potencia de la señal normalizada, es decir 1 W)
-pot_ruido_cuant = (q**2)/12# Watts 
-kn = 1. # escala de la potencia de ruido analógico
-pot_ruido_analog = pot_ruido_cuant * kn # 
+pot_ruido_analog = pot_ruido_cuant * kn # Simulamos un ruido analogico
 
 # %% Genera seno
 ts = 1/fs # tiempo de muestreo
 df = fs/N # resolución espectral
 f0 = 1# grilla de sampleo temporal 
 tt = np.linspace(0, (N-1)*ts, N).flatten()
->>>>>>> origin/main
-A = math.sqrt(2)
-# Declaro funcion senoidal 
-xx = A*np.sin( 2 * np.pi * f0 * tt  )
-
+A = math.sqrt(2) # proceso de normalización 
+xx = A*np.sin( 2 * np.pi * f0 * tt  ) # Declaro funcion senoidal
 plt.figure(1)
-seno = plt.plot(tt, xx)
-varx = np.var(xx)
+plt.subplot(3,1,1)
+plt.plot(tt, xx)
+var_xx = np.var(xx)
+print(var_xx)
 
-# %%Genera ruido
-sigma = math.sqrt(pot_ruido_analog)
-noise = np.random.normal(0,sigma,N)#media, sigma y cantidad
-plt.figure(2)
-ruido = plt.plot(tt, noise)
-varn = np.var(noise)
-
-xr = xx + noise
-plt.figure(3)
-plt.plot(tt,xr)
-print(varn)
+# %%Generador de ruido
+# Distrubuido de forma Normal de media nula, le prescribo la potencia para que 
+# sea la que definí en el primer bloque como pot_ruido_analog y la cantidad de 
+# muestras tiene que ser la misma para que los vectores esten apareados en
+# cantidad de elementos
+sigma = math.sqrt(pot_ruido_analog) # Esta es la prescripción de la potencia
+noise = np.random.normal(0,sigma,N) # media, sigma y cantidad
+plt.subplot(3,1,2)
+plt.plot(tt, noise)
+var_n = np.var(noise) 
+# imprimo para chequear que la potencia sea la que le prescribi
+print(var_n)
 print(pot_ruido_analog)
+
+#%%% Sumo la señal analógica con el ruido
+xr = xx + noise
+plt.subplot(3,1,3)
+plt.plot(tt,xr)
+
 #%% Experimento: 
 """
    Se desea simular el efecto de la cuantización sobre una señal senoidal de 
