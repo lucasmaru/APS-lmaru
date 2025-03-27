@@ -24,7 +24,7 @@ q = (Vf)/2**(B-1) # paso de cuantización de q Volts
 
 # datos del ruido (potencia de la señal normalizada, es decir 1 W)
 pot_ruido_cuant = (q**2)/12# Watts, intrinseco del ADC
-kn = 1. # escala de la potencia de ruido analógico
+kn = 10. # escala de la potencia de ruido analógico
 pot_ruido_analog = pot_ruido_cuant * kn # Simulamos un ruido analogico
 
 # %% Genera seno
@@ -129,7 +129,7 @@ plt.show()
 ###########
 
 plt.figure(2)
-ft_SR = 1/N*np.fft.fft( sr)
+ft_SR = 1/N*np.fft.fft( sr)#escalamiento no es importante (1/N)
 ft_Srq = 1/N*np.fft.fft( srq)
 ft_As = 1/N*np.fft.fft( analog_sig)
 ft_Nq = 1/N*np.fft.fft( nq)
@@ -138,7 +138,7 @@ ft_Nn = 1/N*np.fft.fft( nn)
 # grilla de sampleo frecuencial
 ff = np.linspace(0, (N-1)*df, N)
 
-bfrec = ff <= fs/2
+bfrec = ff <= fs/2#vector booleano mitad True, mitad False
 
 Nnq_mean = np.mean(np.abs(ft_Nq)**2)
 nNn_mean = np.mean(np.abs(ft_Nn)**2)

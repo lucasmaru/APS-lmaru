@@ -28,7 +28,7 @@ ts = 1/fs       # tiempo de muestreo
 
 N = 1000        # cantidad total de muestras
 
-f0 = 100        # frecuencia de la señal
+f0 = 1        # frecuencia de la señal
 
 df = fs/N       # resolución espectral, no lo utilizamos en este codigo
 
