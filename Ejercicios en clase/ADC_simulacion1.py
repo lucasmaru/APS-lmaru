@@ -106,7 +106,7 @@ nq = xq - xr  # señal de ruido de cuantización
 
 # cierro ventanas anteriores
 plt.close('all')
-
+    
 ##################
 # Señal temporal
 ##################
