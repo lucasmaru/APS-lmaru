@@ -142,8 +142,9 @@ plt.close('all')
 
 plt.figure(1)
 
-plt.plot(tt, srq, lw=1, linestyle='', color='blue', marker='o', markersize=5, markerfacecolor='blue', markeredgecolor='blue', fillstyle='none', label='ADC out (diezmada)')
-plt.plot(tt, sr, lw=1, color='yellow', ls='dotted', label='$ s $ (analog)')
+plt.plot(tt, srq, color='blue',label='ADC out')
+plt.plot(tt, analog_sig, color='yellow',linestyle='dotted', label='Señal analógica')
+#plt.plot(tt, sr, lw=1, color='green', marker='x', ls='dotted', label='$ s $ (analog)')
 
 plt.title('Señal muestreada por un ADC de {:d} bits - $\pm V_R= $ {:3.1f} V - q = {:3.3f} V'.format(B, Vf, q) )
 plt.xlabel('tiempo [segundos]')
