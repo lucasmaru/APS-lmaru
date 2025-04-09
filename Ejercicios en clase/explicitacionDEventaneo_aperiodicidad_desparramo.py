@@ -1,11 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Tue Apr  8 19:14:02 2025
-
+Visualización de una senoidal con su ventana rectangular marcada en los bordes
 @author: lmaru
 """
-
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -37,9 +35,36 @@ def genera_grafica_tiempo_espectro(f0,fs,N):
     plt.xlabel("Frecuencia (Hz)")
     plt.ylabel("Magnitud (dB)")
     plt.grid(True)
+    return tt,ts,N,f0,fs
 
-#genera_grafica_tiempo_espectro(1, 1000,1000)
-#genera_grafica_tiempo_espectro(1, 1000.5,1000)
-genera_grafica_tiempo_espectro(f0=4, fs=1000 , N=1000)
-genera_grafica_tiempo_espectro(f0=4, fs=1200 , N=400)
-#genera_grafica_tiempo_espectro(1, 51.5, 100)
+tt ,ts , N ,f0 ,fs= genera_grafica_tiempo_espectro(f0=4, fs=1000 , N=1000)
+
+window = np.ones(N)
+plt.subplot(2,1,1)
+plt.plot(tt, window, label='Ventana rectangular', color='black', linestyle='--')
+# Líneas verticales en los extremos del cajón
+plt.vlines(tt[0], ymin=0, ymax=1, color='black', linestyle='--')
+plt.vlines(tt[-1], ymin=0, ymax=1, color='black', linestyle='--')
+plt.title(f"Senoidal de {f0} Hz muestreada a {fs} Hz (tiempo)y ventana rectangular")
+plt.xlabel("Tiempo (s)")
+plt.ylabel("Amplitud")
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.show()
+
+tt ,ts , N ,f0 ,fs = genera_grafica_tiempo_espectro(f0=4, fs=1200 , N=400)
+
+window = np.ones(N)
+plt.subplot(2,1,1)
+plt.plot(tt, window, label='Ventana rectangular', color='black', linestyle='--')
+# Líneas verticales en los extremos del cajón
+plt.vlines(tt[0], ymin=0, ymax=1, color='black', linestyle='--')
+plt.vlines(tt[-1], ymin=0, ymax=1, color='black', linestyle='--')
+plt.title(f"Senoidal de {f0} Hz muestreada a {fs} Hz (tiempo)y ventana rectangular")
+plt.xlabel("Tiempo (s)")
+plt.ylabel("Amplitud")
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.show()
