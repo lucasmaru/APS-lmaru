@@ -13,7 +13,6 @@ Este es un archivo temporal.
 # Por ejemplo np.linspace() -> función linspace dentro e NumPy
 
 import numpy as np
-import matplotlib as mpl
 import matplotlib.pyplot as plt
 
 #%% Declaramos nuestra funcion para la señal 
