@@ -5,11 +5,25 @@ Created on Wed Apr  9 18:44:34 2025
 
 @author: lmaru"""
 
-#%%
+#%% Consigna
+
+"""Para una señal x(k)=a1⋅sen(Ω1⋅k)+n(k) siendo Ω1=Ω0+fr⋅2πN, con Ω0=π2 y las variables aleatorias definidas por
+   fr∼U(−1/2,1/2) (uniforme) y n∼N(0,σ2) (normal). 
+   Evalúe los siguientes estimadores de a1 y Ω1: 
+                                     a1^^=|Xiw(Ω)|=|F{x(k)⋅wi(k)}| y Ω^1=arg maxf{P^}
+   Siguiendo las siguientes consignas:
+       .Considere 200 realizaciones de 1000 muestras para cada experimento.
+       .Parametrice para SNR's de 3 y 10 db.
+                                 
+"""
 """
 TAREA SEMANAL 4 - Primeras nociones de la estimacion espectral
 La estimación espectral es una técnica utilizada en el procesamiento de señales para determinar cómo se
-distribuye la potencia de una señal en función de la frecuencia
+distribuye la potencia de una señal en función de la frecuencia.
+Cuando una señal no es puramente periódica (por ejemplo, una onda senoidal), sino que contiene componentes 
+aleatorios o ruidosos (como una grabación de voz, una señal eléctrica, o una medición física), no es posible 
+simplemente aplicar una transformada de Fourier y esperar un resultado limpio. La estimación espectral permite 
+hacer esto de forma más robusta.
 """
 
 #%% módulos y funciones a importar
@@ -17,10 +31,6 @@ import numpy as np
 from scipy.signal.windows import hamming, hann, blackman, kaiser
 from scipy.fft import fft, fftshift
 import matplotlib.pyplot as plt
-
-#%% Genero mi Omega 1 que va a ser una frecuencia original mas una inceretidumbre en la frecuencia
-# Esto genera que no sepa la frecuencia que estamos, sino que solo sepamos entre que valores va a estar
-
 #%% Datos de la simulacion
 
 fs = 1000           # frecuencia de muestreo (Hz)
