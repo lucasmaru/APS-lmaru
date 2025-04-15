@@ -136,20 +136,21 @@ w_hamming = hamming(N).reshape(N,1)
 w_hann = hann(N).reshape(N,1)
 
 # Graficar ventanas
+n=np.arange(N)
 plt.figure(2)
-plt.plot(frec, w_rect, color='gray' ,label='Rectangular')
-plt.vlines(x=-fs/2, ymin=0, ymax=1, color='gray')
-plt.vlines(x=fs/2, ymin=0, ymax=1, color='gray')
-plt.plot(frec, w_flattop, label='Flattop')
-plt.plot(frec, w_blackmanharris, label='Blackman-Harris')
-plt.plot(frec, w_hamming, label='Hamming')
-plt.plot(frec, w_hann, label='Hann')
+plt.plot(n, w_rect, color='gray' ,label='Rectangular')
+plt.vlines(x=0, ymin=0, ymax=1, color='gray')
+plt.vlines(x=N-1, ymin=0, ymax=1, color='gray')
+plt.plot(n, w_flattop, label='Flattop')
+plt.plot(n, w_blackmanharris, label='Blackman-Harris')
+plt.plot(n, w_hamming, label='Hamming')
+plt.plot(n, w_hann, label='Hann')
 plt.title('Ventaneos')
-plt.xlabel('Muestras')
+plt.xlabel('Tiempo [n]')
 plt.ylabel('Amplitud')
 plt.legend()
 plt.grid(True)
-#%% Enventaneo y grafico
+#%% Enventaneo la señal
 
 W_Flattop = Signal *w_flattop
 W_Flattop = fft(W_Flattop , axis=0)
@@ -167,17 +168,56 @@ W_Hamming = fft(W_Hamming , axis=0)
 W_Hamming = fftshift(W_Hamming , axes=0)  # Centramos el espectro
 W_Hamming_norm = W_Hamming / np.max(np.abs(W_Hamming))
 
-# # Graficar algunas columnas
-# num_senales = 10
-# indices = np.linspace(0, N_Test-1, num_senales, dtype=int)
+W_Hann = Signal *w_hann
+W_Hann = fft(W_Hann , axis=0)
+W_Hann = fftshift(W_Hann , axes=0)  # Centramos el espectro
+W_Hann_norm = W_Hann / np.max(np.abs(W_Hann))
 
-# plt.figure(figsize=(10, 6))
-# for i in indices:
-#     plt.plot(frec, 10 * np.log10(2 * np.abs(SW_Hamming_norm[:, i])**2), label=f'Señal {i+1}')
 
-# plt.title("Espectro de señales ventaneadas con Hamming")
-# plt.xlabel("Frecuencia (Hz)")
-# plt.ylabel("Magnitud en dB")
-# plt.grid(True)
+#%% Visualización
+
+#almaceno matrices en un diccionario
+ventanas = {
+    'Rectangular': XF_norm,
+    'Flattop': W_Flattop_norm,
+    'Blackman-Harris': W_Blackmanharris_norm,
+    'Hamming': W_Hamming_norm,
+    'Hann': W_Hann_norm
+}
+
+"""Defino el número de señales y creo un vector con 5 valores entre 0 y 199 
+equiespaciados y enteros""" 
+num_senales = 5
+indices = np.linspace(0, N_Test-1, num_senales, dtype=int)
+
+"""Creo 5 subplots de una sola columna y almaceno sus atributos en fig y axs.
+Además defino el tamaño y con sharex comparten el eje x para que se alineen."""
+fig, axs = plt.subplots(len(ventanas), 1, figsize=(10, 12), sharex=True)
+
+"""Con un for recorro cada ax en axs y lo zipeo con el diccionario ""ventanas"
+esto me devuelve unos ejes con un nombre y su correspondiente matriz normalizada
+que recorro con otro for para generar los graficos de la cant de señales definida.
+"""
+for ax, (nombre, matriz_fft) in zip(axs, ventanas.items()):
+    for i in indices:
+        ax.plot(frec, 10 * np.log10(2 * np.abs(matriz_fft[:, i])**2), label=f'Señal {i+1}')
+    ax.set_title(f"Ventana: {nombre}")
+    ax.set_ylabel("Magnitud [dB]")
+    ax.grid(True)
+    ax.legend()
+#plt.figure(3)
+#plt.plot(frec, w_rect, color='gray' ,label='Rectangular')
+#plt.vlines(x=-fs/2, ymin=0, ymax=1, color='gray')
+#plt.vlines(x=fs/2, ymin=0, ymax=1, color='gray')
+#for i in range(5): #no encuentro otra manera de poner las etiquetas sin el for
+    #plt.plot(frec, 10 * np.log10(2 * np.abs(W_Flattop_norm[:, i])**2), label=f'Señal {i+1}')
+# plt.plot(frec, W_Flattop_norm, label='Flattop')
+# plt.plot(frec, W_Blackmanharris_norm, label='Blackman-Harris')
+# plt.plot(frec, W_Hamming_norm, label='Hamming')
+# plt.plot(frec, W_Hann, label='Hann')
+# plt.title('Ventaneos')
+# plt.xlabel('Muestras')
+# plt.ylabel('Amplitud')
 # plt.legend()
+# plt.grid(True)
 
