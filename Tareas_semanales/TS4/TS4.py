@@ -33,7 +33,7 @@ from scipy.fft import fft, fftshift
 import matplotlib.pyplot as plt
 #%% Datos de la simulacion
 
-fs = 1000           # frecuencia de muestreo (Hz)
+fs = 1000.0           # frecuencia de muestreo (Hz)
 N = 1000            # cantidad de muestras
 ts = 1/fs           # tiempo de muestreo
 df = fs/N           # resolución espectral
@@ -41,100 +41,120 @@ df = fs/N           # resolución espectral
 N_Test = 200        # Numero de pruebas
 
 SNR = 10            # Signal to Noise Ratio 
-
-Sigma2 = 10**-1     # Despejando el PN potencia de ruido de la ecuacion de SNR llego a este valor
+ 
+"""De la definición de SNR y asumiendo potencia de la señal normalizada llego 
+al valor que debe tener la potencia de ruido para respetar el SNR requerido.
+De esta manera tengo resuelta la experiencia para ambas SNR prescriptas."""
+Sigma2 = 10**(-10/SNR) #Potencia de ruido
 
 Omega_0 = fs/4      # Nos ponemos a mitad de banda digital
+"""Esto viene prescripto en el enunciado y tiene la intención de generar
+frecuencias que oscilen +- medio bin del centro de banda digital."""
+#%% Genero mi matriz de 1000x200 de la senoidal
 
-#%% Genero mi vector de 1000x200 de la senoidal
+"""Defino la amplitud que ya calculamos en otras TS para que la potencia de las
+200 senoidales quede normalizada"""
+A1 = np.sqrt(2) 
 
-A1 = np.sqrt(2)                                             # Genero la amplitud de manera que el seno quede normalizado
+"""Genero el vector de 1x200 frecuencias, 200 valores extraidos de una 
+distribución uniforme de -1,2 a 1/2 y le fuerzo las dimensiones con reshape"""
+fr = np.random.uniform(-1/2,1/2,N_Test).reshape(1,N_Test)
+  
+Omega_1 = Omega_0 + fr*df                       # Genero mi Omega_1 de 1x200
 
-fr = np.random.uniform(-1/2,1/2,N_Test).reshape(1,N_Test)      # Declaro mi vector 1x200 al pasar 200 valores a la uniforme     
-                                                            # Fuerzo las dimensiones
-Omega_1 = Omega_0 + fr*df                                   # Genero mi Omega 1
+# Genero vector de tiempo para meterlo como mi matriz de 1000x200 en el seno 
+tt = np.linspace(0, (N-1)*ts, N).reshape(N,1)    #vector columna de 1000x1
+tt = np.tile(tt, (1, N_Test))  # tile repite esa columna 200 veces, queda de 1000x200
 
-# Genero vector de tiempo para poder meterlo como mi vector de 1000 x 200 en el seno 
-tt = np.linspace(0, (N-1)*ts, N).reshape(N,1)
-
-tt = np.tile(tt, (1, N_Test))                               # Genero la matriz de 1000 x 200
-
-# Al mutiplicar con * hacemos el producto matricial para que quede de 1000x200
+""" Al mutiplicar omega_1 con tt numpy por defecto multiplica término a término
+como tt es de 1000x200 entiende que tiene que expandir dimensionalmente a 
+omega_1 para poder hacer el producto término a término, lo hace automáticamente
+y por eso S es de 1000x200 
+"""
 S = A1 * np.sin(2 * np.pi * Omega_1 * tt)
 
-#%% Genereo el ruido para la señal
-
+"""Grafico la columna 0 del tiempo y la columna cero de S, para corroborar que 
+tengo una senoidal pura de una frecuenia de alrededor de 250hz en cada columa, 
+pero en cambio veo algo como una envolvente que módula la señal,pero si pongo 
+omega_0=1 veo lo que espero ver"""
+############################GRAFICO DE CHEQUEO#################################
+# plt.figure(1)
+# plt.plot(tt[:,0], S[:,0:5])  # ahora sí, una senoidal limpia
+# #plt.stem(tt[:,0], S[:,0],basefmt=" ")
+# plt.xlabel("Tiempo [s]")
+# plt.ylabel("Amplitud")
+# plt.title("Senoidal número 1")
+# plt.grid(True)
+#%% Genero el ruido para la señal
 # Para poder general la señal de ruido, tenemos que tener una distribucion normal con un N(o,sigma)
 
 Media = 0                   # Media
-SD_Sigma = np.sqrt(Sigma2)  # Desvio standar 
+SD_Sigma = np.sqrt(Sigma2)  # Desvio standar a partir de la pot calculada antes 
 
-nn = np.random.normal(Media, SD_Sigma, N).reshape(N,1)              # Genero señal de ruido
+nn = np.random.normal(Media, SD_Sigma, N).reshape(N,1)  # Genero señal de ruido 1000x1
+nn = np.tile(nn, (1,N_Test))                            # tile repite esa columna 200 veces, queda de 1000x200
 
-nn = np.tile(nn, (1,N_Test))                                        # Ahora tengo que generaer mi matriz de ruido de 200x1000
 
-
-#%% Ahora genero mi señal final sumando las matrices
-
-# Esto seria mi x(k) = a1 * sen(W1 * k ) + n(k), siendo N(k) el ruido
+#%% Sumo la matriz de senoidales con el ruido
 Signal = S + nn
+"""Grafico la columna 0 del tiempo y la columna cero de Signal, para corroborar 
+que se haya añadido el ruido. Se ve el ruido, pero con el mismo patrón que cuando 
+grafique la senoidal pura, se ve como una envolvente que módula la señal, 
+nuevamente si cambio a omega_0=1 veo algo más razonable"""
+############################GRAFICO DE CHEQUEO#################################
+# plt.figure(1)
+# plt.plot(tt[:,0], Signal[:,0:5])  # ahora sí, una senoidal limpia
+# plt.xlabel("Tiempo [s]")
+# plt.ylabel("Amplitud")
+# plt.title("Senoidal + ruido")
+# plt.grid(True)
 
 #%% Calcular la FFT de cada señal en la matriz Signal
 
-X_f = fft(Signal, axis=0)  # FFT en cada columna (cada señal)
-X_f = fftshift(X_f, axes=0)  # Centramos el espectro
-X_f_norm = X_f/np.max(np.abs(X_f))
-# Generamos el eje de frecuencias
-frec = np.linspace(-fs/2, fs/2, N)  # Eje de frecuencias
+XF = fft(Signal, axis=0)  # FFT en cada columna (cada señal) eso lo garantizo con el axis
+XF = fftshift(XF, axes=0) # Centramos el espectro, ahora axes garantiza el reordenamiento vertical
+XF_norm = XF/np.max(np.abs(XF)) #normalizo
+frec = np.linspace(-fs/2, fs/2, N)  # Eje de frec apropiado para el orden que impone fftshift
 
 #%% Graficamos la magnitud de la FFT para algunas señales
-
-num_senales = 10  # Número de señales a graficar
-indices = np.linspace(0, N_Test-1, num_senales, dtype=int)  # Seleccionamos señales espaciadas
-
-plt.figure(figsize=(10, 6))
-
-for i in indices:
-    #plt.plot(frec, np.abs(X_f[:, i]), label=f'Señal {i+1}')  # Magnitud de la FFT
-    plt.plot(frec, 10 * np.log10(2 * np.abs(X_f_norm[:, i])**2), label=f'Señal {i+1}')  # Magnitud de la FFT
-
-# Configuración de la gráfica
+for i in range(5): #no encuentro otra manera de poner las etiquetas sin el for
+    plt.plot(frec, 10 * np.log10(2 * np.abs(XF_norm[:, i])**2), label=f'Señal {i+1}')
+    
 plt.xlabel("Frecuencia (Hz)")
-plt.ylabel("Magnitud en dB|X(f)|")
-plt.title("Espectro de algunas señales en Signal")
-plt.legend()
+plt.ylabel("Magnitud (dB)")
+plt.title("FFT de varias señales")
 plt.grid(True)
-
-# Mostrar la gráfica
+plt.legend()
+plt.tight_layout()
 plt.show()
 
-#%% Generar la ventana de Hamming
-w_hamming = hamming(N).reshape(N,1)
+# #%% Generar la ventana de Hamming
+# w_hamming = hamming(N).reshape(N,1)
 
-# Graficar la ventana
-# plt.figure(2)
-# plt.plot(w_hamming)
-# plt.title('Ventana de Hamming')
-# plt.xlabel('Muestras')
-# plt.ylabel('Amplitud')
+# # Graficar la ventana
+# # plt.figure(2)
+# # plt.plot(w_hamming)
+# # plt.title('Ventana de Hamming')
+# # plt.xlabel('Muestras')
+# # plt.ylabel('Amplitud')
+# # plt.grid(True)
+
+# SW_Hamming = Signal *w_hamming
+# SW_Hamming = fft(SW_Hamming , axis=0)
+# SW_Hamming = fftshift(SW_Hamming , axes=0)  # Centramos el espectro
+# SW_Hamming_norm = SW_Hamming / np.max(np.abs(SW_Hamming))
+
+# # Graficar algunas columnas
+# num_senales = 10
+# indices = np.linspace(0, N_Test-1, num_senales, dtype=int)
+
+# plt.figure(figsize=(10, 6))
+# for i in indices:
+#     plt.plot(frec, 10 * np.log10(2 * np.abs(SW_Hamming_norm[:, i])**2), label=f'Señal {i+1}')
+
+# plt.title("Espectro de señales ventaneadas con Hamming")
+# plt.xlabel("Frecuencia (Hz)")
+# plt.ylabel("Magnitud en dB")
 # plt.grid(True)
-
-SW_Hamming = Signal *w_hamming
-SW_Hamming = fft(SW_Hamming , axis=0)
-SW_Hamming = fftshift(SW_Hamming , axes=0)  # Centramos el espectro
-SW_Hamming_norm = SW_Hamming / np.max(np.abs(SW_Hamming))
-
-# Graficar algunas columnas
-num_senales = 10
-indices = np.linspace(0, N_Test-1, num_senales, dtype=int)
-
-plt.figure(figsize=(10, 6))
-for i in indices:
-    plt.plot(frec, 10 * np.log10(2 * np.abs(SW_Hamming_norm[:, i])**2), label=f'Señal {i+1}')
-
-plt.title("Espectro de señales ventaneadas con Hamming")
-plt.xlabel("Frecuencia (Hz)")
-plt.ylabel("Magnitud en dB")
-plt.grid(True)
-plt.legend()
+# plt.legend()
 
