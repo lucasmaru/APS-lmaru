@@ -28,7 +28,7 @@ hacer esto de forma más robusta.
 
 #%% módulos y funciones a importar
 import numpy as np
-from scipy.signal.windows import hamming, hann, blackman, kaiser
+from scipy.signal.windows import hamming, hann, blackmanharris, flattop
 from scipy.fft import fft, fftshift
 import matplotlib.pyplot as plt
 #%% Datos de la simulacion
@@ -121,28 +121,51 @@ for i in range(5): #no encuentro otra manera de poner las etiquetas sin el for
     plt.plot(frec, 10 * np.log10(2 * np.abs(XF_norm[:, i])**2), label=f'Señal {i+1}')
     
 plt.xlabel("Frecuencia (Hz)")
-plt.ylabel("Magnitud (dB)")
+plt.ylabel("Magnitud (dB)") 
 plt.title("FFT de varias señales")
 plt.grid(True)
 plt.legend()
 plt.tight_layout()
 plt.show()
 
-# #%% Generar la ventana de Hamming
-# w_hamming = hamming(N).reshape(N,1)
+#%% Genero las ventanas flattop, blackmanharris, hamming y hann
+w_rect = np.ones((N,1))  # Ventana rectangular explícitada
+w_flattop = flattop(N).reshape(N,1)
+w_blackmanharris = blackmanharris(N).reshape(N,1)
+w_hamming = hamming(N).reshape(N,1)
+w_hann = hann(N).reshape(N,1)
 
-# # Graficar la ventana
-# # plt.figure(2)
-# # plt.plot(w_hamming)
-# # plt.title('Ventana de Hamming')
-# # plt.xlabel('Muestras')
-# # plt.ylabel('Amplitud')
-# # plt.grid(True)
+# Graficar ventanas
+plt.figure(2)
+plt.plot(frec, w_rect, color='gray' ,label='Rectangular')
+plt.vlines(x=-fs/2, ymin=0, ymax=1, color='gray')
+plt.vlines(x=fs/2, ymin=0, ymax=1, color='gray')
+plt.plot(frec, w_flattop, label='Flattop')
+plt.plot(frec, w_blackmanharris, label='Blackman-Harris')
+plt.plot(frec, w_hamming, label='Hamming')
+plt.plot(frec, w_hann, label='Hann')
+plt.title('Ventaneos')
+plt.xlabel('Muestras')
+plt.ylabel('Amplitud')
+plt.legend()
+plt.grid(True)
+#%% Enventaneo y grafico
 
-# SW_Hamming = Signal *w_hamming
-# SW_Hamming = fft(SW_Hamming , axis=0)
-# SW_Hamming = fftshift(SW_Hamming , axes=0)  # Centramos el espectro
-# SW_Hamming_norm = SW_Hamming / np.max(np.abs(SW_Hamming))
+W_Flattop = Signal *w_flattop
+W_Flattop = fft(W_Flattop , axis=0)
+W_Flattop = fftshift(W_Flattop , axes=0)  # Centramos el espectro
+W_Flattop_norm = W_Flattop / np.max(np.abs(W_Flattop))
+
+
+W_Blackmanharris = Signal *w_blackmanharris
+W_Blackmanharris = fft(W_Blackmanharris , axis=0)
+W_Blackmanharris = fftshift(W_Blackmanharris , axes=0)  # Centramos el espectro
+W_Blackmanharris_norm = W_Blackmanharris / np.max(np.abs(W_Blackmanharris))
+
+W_Hamming = Signal *w_hamming
+W_Hamming = fft(W_Hamming , axis=0)
+W_Hamming = fftshift(W_Hamming , axes=0)  # Centramos el espectro
+W_Hamming_norm = W_Hamming / np.max(np.abs(W_Hamming))
 
 # # Graficar algunas columnas
 # num_senales = 10
