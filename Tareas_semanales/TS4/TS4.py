@@ -205,19 +205,5 @@ for ax, (nombre, matriz_fft) in zip(axs, ventanas.items()):
     ax.set_ylabel("Magnitud [dB]")
     ax.grid(True)
     ax.legend()
-#plt.figure(3)
-#plt.plot(frec, w_rect, color='gray' ,label='Rectangular')
-#plt.vlines(x=-fs/2, ymin=0, ymax=1, color='gray')
-#plt.vlines(x=fs/2, ymin=0, ymax=1, color='gray')
-#for i in range(5): #no encuentro otra manera de poner las etiquetas sin el for
-    #plt.plot(frec, 10 * np.log10(2 * np.abs(W_Flattop_norm[:, i])**2), label=f'Señal {i+1}')
-# plt.plot(frec, W_Flattop_norm, label='Flattop')
-# plt.plot(frec, W_Blackmanharris_norm, label='Blackman-Harris')
-# plt.plot(frec, W_Hamming_norm, label='Hamming')
-# plt.plot(frec, W_Hann, label='Hann')
-# plt.title('Ventaneos')
-# plt.xlabel('Muestras')
-# plt.ylabel('Amplitud')
-# plt.legend()
-# plt.grid(True)
+
 
