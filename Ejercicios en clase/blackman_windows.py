@@ -1,6 +1,14 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
+Created on Sat Apr 12 11:47:42 2025
+
+@author: lmaru
+"""
+
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
 Created on Thu Mar 27 19:18:54 2025
 
 @author: lmaru
@@ -54,36 +62,36 @@ ft_xx = 1/N * np.fft.fft(xx_norm)
 # axs[1].legend()
 # plt.show()
 
-#%% Ventana de bartlett en el tiempo y su fft
+#%% Ventana de blackman en el tiempo y su fft
 
-bartlett_window = signal.bartlett(N)                                #ventana bartlett
-ft_bartlett = 1/N * np.fft.fft(bartlett_window)                     #calculo fft
+blackman_window = signal.blackman(N)                                #ventana blackman
+ft_blackman = 1/N * np.fft.fft(blackman_window)                     #calculo fft
 
 # Eje de frecuencias centrado manualmente (sino solo grafica el lado positivo)
-ff_bartlett = np.linspace(-fs/2, fs/2 - df, N)
+ff_blackman = np.linspace(-fs/2, fs/2 - df, N)
 
-# Reordenar la FFT para que coincida con ff_bartlett
+# Reordenar la FFT para que coincida con ff_blackman
 """
 Esto es porque FFT devuelve un vector con los valores positivos primero y luego
 los negativos:
     [ f = 0     →       f = 500 hz      |      f = -500hz     →       f = 0 ]
 """
-ft_bartlett_acomodada = np.concatenate((ft_bartlett[N//2:], ft_bartlett[:N//2]))
+ft_blackman_acomodada = np.concatenate((ft_blackman[N//2:], ft_blackman[:N//2]))
 
 # Magnitud en dB normalizada
-mag_dB = 20 * np.log10(np.abs(ft_bartlett_acomodada) / np.max(np.abs(ft_bartlett_acomodada)))
+mag_dB = 20 * np.log10(np.abs(ft_blackman_acomodada) / np.max(np.abs(ft_blackman_acomodada)))
 
 # Gráficos
 # plt.figure(2)
 # plt.subplot(2,1,1)
-# plt.plot(tt, bartlett_window)
-# plt.title("Ventana de Bartlett en el tiempo")
+# plt.plot(tt, blackman_window)
+# plt.title("Ventana de blackman en el tiempo")
 # plt.xlabel("Tiempo [s]")
 # plt.grid(True)
 
 # plt.subplot(2,1,2)
-# plt.plot(ff_bartlett, mag_dB)
-# plt.title("Espectro de la ventana Bartlett")
+# plt.plot(ff_blackman, mag_dB)
+# plt.title("Espectro de la ventana blackman")
 # plt.xlabel("Frecuencia [Hz]")
 # plt.ylabel("Magnitud [dB]")
 # plt.xlim(-500, 500)
@@ -94,11 +102,11 @@ mag_dB = 20 * np.log10(np.abs(ft_bartlett_acomodada) / np.max(np.abs(ft_bartlett
 # plt.show()
 #%% Ventaneo la señal y la grafico junto con el ventaneo rectangular
 
-window_signal = xx * bartlett_window                     #ventaneo la senoidal
+window_signal = xx * blackman_window                     #ventaneo la senoidal
 window_signal_norm = window_signal/np.std(window_signal) #normalizo la señal ventaneada
 ft_window_signal_norm = 1/N * np.fft.fft(window_signal_norm)  # FFT de la señal ventaneada y normalizada
 plt.figure(3)
-plt.plot( ff[bfrec] , 10*np.log10(2*np.abs(ft_window_signal_norm[bfrec])**2), label='Ventaneo con Bartlett', color='skyblue')
+plt.plot( ff[bfrec] , 10*np.log10(2*np.abs(ft_window_signal_norm[bfrec])**2), label='Ventaneo con blackman', color='skyblue')
 plt.plot(ff[bfrec] , 10*np.log10(2*np.abs(ft_xx[bfrec])**2), label='Ventaneo con rectangular', color='red')
 plt.xlim(0, 500)
 plt.xlabel("Frecuencia [Hz]")
@@ -108,4 +116,4 @@ plt.legend()
 #%%Conclusión
 """ En N/4 tengo sintonizada la sinc y pareciera que es mejor ventanear con una fn rectangulo
 pero apenas nos movemos un poco de la frecuencia de sintonia (+- 0,5 hz) el patrón se modifica.
-Se ve que la señal se desparrama mucho menos con la ventana de Bartlett"""
+Se ve que la señal se desparrama mucho menos con la ventana de blackman"""

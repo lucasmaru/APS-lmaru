@@ -30,7 +30,7 @@ pot_ruido_analog = pot_ruido_cuant * kn # Simulamos un ruido analogico
 # %% Genera seno
 ts = 1/fs # tiempo de muestreo
 df = fs/N # resolución espectral
-f0 = 1# grilla de sampleo temporal 
+f0 = 1.5# grilla de sampleo temporal 
 tt = np.linspace(0, (N-1)*ts, N).flatten()
 """
    Busco los valores para los cuales esta senoidal esta normalizada, es decir 
@@ -111,17 +111,17 @@ plt.close('all')
 # Señal temporal
 ##################
 
-plt.figure(1)
+# plt.figure(1)
 
-plt.plot(tt, srq, lw=2, linestyle='', color='blue', marker='o', markersize=5, markerfacecolor='blue', markeredgecolor='blue', fillstyle='none', label='ADC out (diezmada)')
-plt.plot(tt, sr, lw=1, color='black', marker='x', ls='dotted', label='$ s $ (analog)')
+# plt.plot(tt, srq, lw=2, linestyle='', color='blue', marker='o', markersize=5, markerfacecolor='blue', markeredgecolor='blue', fillstyle='none', label='ADC out (diezmada)')
+# plt.plot(tt, sr, lw=1, color='black', marker='x', ls='dotted', label='$ s $ (analog)')
 
-plt.title('Señal muestreada por un ADC de {:d} bits - $\pm V_R= $ {:3.1f} V - q = {:3.3f} V'.format(B, Vf, q) )
-plt.xlabel('tiempo [segundos]')
-plt.ylabel('Amplitud [V]')
-axes_hdl = plt.gca()
-axes_hdl.legend()
-plt.show()
+# plt.title('Señal muestreada por un ADC de {:d} bits - $\pm V_R= $ {:3.1f} V - q = {:3.3f} V'.format(B, Vf, q) )
+# plt.xlabel('tiempo [segundos]')
+# plt.ylabel('Amplitud [V]')
+# axes_hdl = plt.gca()
+# axes_hdl.legend()
+# plt.show()
 
 
 ###########
@@ -162,11 +162,11 @@ axes_hdl.legend()
 # Histograma
 #############
 
-plt.figure(3)
-bins = 10
-plt.hist(nq.flatten()/(q), bins=bins)
-plt.plot( np.array([-1/2, -1/2, 1/2, 1/2]), np.array([0, N/bins, N/bins, 0]), '--r' )
-plt.title( 'Ruido de cuantización para {:d} bits - $\pm V_R= $ {:3.1f} V - q = {:3.3f} V'.format(B, Vf, q))
+# plt.figure(3)
+# bins = 10
+# plt.hist(nq.flatten()/(q), bins=bins)
+# plt.plot( np.array([-1/2, -1/2, 1/2, 1/2]), np.array([0, N/bins, N/bins, 0]), '--r' )
+# plt.title( 'Ruido de cuantización para {:d} bits - $\pm V_R= $ {:3.1f} V - q = {:3.3f} V'.format(B, Vf, q))
 
-plt.xlabel('Pasos de cuantización (q) [V]')
+# plt.xlabel('Pasos de cuantización (q) [V]')
 

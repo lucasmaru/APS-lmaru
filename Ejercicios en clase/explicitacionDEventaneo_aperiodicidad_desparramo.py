@@ -45,7 +45,7 @@ def genera_grafica_tiempo_espectro(f0,fs,N):
     plt.grid(True)
     return tt,ts,N,f0,fs
 
-tt ,ts , N ,f0 ,fs= genera_grafica_tiempo_espectro(f0=4, fs=1000 , N=1000)
+tt ,ts , N ,f0 ,fs= genera_grafica_tiempo_espectro(f0=251.5, fs=1000 , N=1000)
 
 window = np.ones(N)
 plt.subplot(2,1,1)
@@ -61,7 +61,7 @@ plt.legend()
 plt.tight_layout()
 plt.show()
 
-tt ,ts , N ,f0 ,fs = genera_grafica_tiempo_espectro(f0=4, fs=1200 , N=4000)
+tt ,ts , N ,f0 ,fs = genera_grafica_tiempo_espectro(f0=1.5, fs=1000 , N=1000)
 
 window = np.ones(N)
 plt.subplot(2,1,1)
