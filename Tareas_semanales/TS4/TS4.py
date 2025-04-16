@@ -114,7 +114,7 @@ nuevamente si cambio a omega_0=1 veo algo más razonable"""
 XF = fft(Signal, axis=0)  # FFT en cada columna (cada señal) eso lo garantizo con el axis
 XF = fftshift(XF, axes=0) # Centramos el espectro, ahora axes garantiza el reordenamiento vertical
 XF_norm = XF/np.max(np.abs(XF)) #normalizo
-frec = np.linspace(-fs/2, fs/2, N)  # Eje de frec apropiado para el orden que impone fftshift
+frec = np.arange(-fs/2, fs/2, df)  # Eje de frec apropiado para el orden que impone fftshift
 
 #%% Graficamos la magnitud de la FFT para algunas señales
 for i in range(5): #no encuentro otra manera de poner las etiquetas sin el for
@@ -206,4 +206,21 @@ for ax, (nombre, matriz_fft) in zip(axs, ventanas.items()):
     ax.grid(True)
     ax.legend()
 
+#%% Estimador de amplitud
+"""Resto a todo el vector de frec[-500,-499,...,0,1,...,250,...,499] Omega_0 que es 250hz, entonces el vector 
+queda frec-250:[-750,-749,...,-250,-249,...,0,...,249], a esto le tomo el módulo, es decir la distancia entre 
+cada valor de de frecuencia con 250 => abs(frec-250):[750,749,...,250,249,...,0,...,249] y por último argmin
+devuelve el indice del valor mínimo del array que es el que ahora da 0 y que antes era 250.Tiene lógica porque 
+para usar fftshift ordenamos el array de frecuencia de [-500,500) como el indice 0 es -500 el indice 750 va a 
+ser el que corresponde a 250hz, en este caso ayuda que la df es 1 pero podrìa no ser entera y aún así este 
+método funcionaría"""
+idx_Omega0 = np.argmin(np.abs(frec - Omega_0))  #Busco el indice que corresponde a omega_0 que da 750
+ 
 
+"""Calculo el módulo para cada espectro ventaneado de la fila 750 y para toda las columnas, ahi voy a tener 
+el valor del estimador para cada una de las 200 señales."""
+a1_rect = np.abs(XF[idx_Omega0, :])
+a1_flattop = np.abs(W_Flattop[idx_Omega0, :])
+a1_blackmanharris = np.abs(W_Blackmanharris[idx_Omega0, :])
+a1_hamming = np.abs(W_Hamming[idx_Omega0, :])
+a1_hann = np.abs(W_Hann[idx_Omega0, :])
