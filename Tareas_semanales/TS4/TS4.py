@@ -28,6 +28,7 @@ hacer esto de forma más robusta.
 
 #%% módulos y funciones a importar
 import numpy as np
+np.random.seed(52)  # Fijamos la semilla para resultados reproducibles
 from scipy.signal.windows import hamming, hann, blackmanharris, flattop
 from scipy.fft import fft, fftshift
 import matplotlib.pyplot as plt
@@ -212,6 +213,12 @@ for ax, (nombre, matriz_fft) in zip(axs, ventanas.items()):
 # Diccionario para almacenar los resultados
 estimadores_frecuencia = {}
 
+"""Necesito poner una máscara para frec positivas por como reordena el eje de frecuencias la func fftshift, es
+decir frec = [-500, -499, ..., 0, ..., 499]. Sino uso la máscara me devuelve la frecuencia en -250hz que es
+correcto por la periodicidad pero no esta bueno para las visualizaciones."""
+idx_pos = frec >= 0  # Máscara para quedarte con la mitad positiva
+frec_pos = frec[idx_pos]
+
 """Uso el diccionario ventanas y lo recorro con el primer for cada iteración almacena la clave en ""nombre" y el valor en
 "matriz_fft"". 
 Luego defino un vector prelocado con 200 ceros donde voy a almacenar los 200 valores del estimador que cada columna/señal 
@@ -221,11 +228,13 @@ cada fft. Evalúo el vector frec en el índice hallado y lo almaceno en el vecto
 las 200 pasadas agrega al diccionario de los estimadores la clave "nombre" que lo extraje del diccionario windows y el ítem
 que es el vector con las 200 estimaciones. 
 Sale del segundo for, vuelve al primero, agarra la siguiente ventana y asì para cada item en "ventanas". """
-for nombre , matriz_fft in ventanas.items():
+
+for nombre, matriz_fft in ventanas.items():
     Omega1_hat = np.zeros(N_Test)
     for i in range(N_Test):
-        id_max = np.argmax(np.abs(matriz_fft[:,i]))
-        Omega1_hat[i] = frec[id_max]
+        espectro = np.abs(matriz_fft[:, i])
+        id_max = np.argmax(espectro[idx_pos])  # Solo busca en positivas
+        Omega1_hat[i] = frec_pos[id_max]
     estimadores_frecuencia[nombre] = Omega1_hat
     
 #%% Estimador de amplitud
@@ -249,19 +258,19 @@ for nombre, matriz_fft in ventanas.items():
     a1 = np.abs(matriz_fft[idx_Omega0, :])  # vector de 200 valores
     estimadores_a1[nombre] = a1
 
-#%% Visualización de estimadores
+#%% Visualización de estimador de amplitud
 
 a1_real = A1
 
 #--- Gráfico combinado: histograma + promedio ---
 """Almacena la figura gral en fig y tantos pares de ejes como cantidad de estimadores tengo en el dict 
 en axs (5 filas una columna, uno arriba del otro). Defino el tamaño y marco una linea con el valor real."""
-fig, axs = plt.subplots(len(estimadores_a1), 1, figsize=(10, 12)) 
+fig, axs = plt.subplots(len(estimadores_a1), 1, figsize=(10, 12), sharex = True) 
 
 # Recorrer cada ventana y generar su histograma
 """El for recorre cada subplot (ax) que fue creado por plt.subplots(...) y a la vez, recorre cada par clave,
-valor del diccionario estimadores_a1, que contiene los estimadores para cada ventana. Luego el zip junta las
-tres cosas. Por ejemplo las dos primeras iteraciónes de for tendrìan:
+valor del diccionario estimadores_a1, que contiene el nombre y los estimadores para cada ventana. Luego el zip 
+junta las tres cosas. Por ejemplo las dos primeras iteraciónes de for tendrìan:
 [  (axs[0], ("Rectangular", valores_rect)), (axs[1], ("Hann", valores_hann)),  ...]
 """
 for ax, (nombre, valores) in zip(axs, estimadores_a1.items()):
@@ -277,3 +286,151 @@ for ax, (nombre, valores) in zip(axs, estimadores_a1.items()):
 axs[-1].set_xlabel("Estimador $\hat{{a}}_1$")
 plt.tight_layout()
 plt.show()
+
+
+#%% Visualización del estimador de frecuencia
+
+#Normalizo el ancho de los bin para que la comparación entre ventanas sea mas visual
+x_min = 249
+x_max = 251
+ancho_bin = 0.10
+bins_comunes = np.arange(x_min, x_max + ancho_bin, ancho_bin)
+
+#Creo la figura y los ejes
+fig, axs = plt.subplots(len(estimadores_frecuencia), 1, figsize=(10, 12), sharex=True)
+
+#Recorro el dict zipeando con los ejes para calcular la media y general el hist
+for ax, (nombre, valores) in zip(axs, estimadores_frecuencia.items()):
+    n, bins, patches = ax.hist(valores, bins=bins_comunes, alpha=0.7, label=nombre, edgecolor='black')
+    media = np.mean(valores)
+
+    #grafico una linea que delimita los bins
+    for bin_edge in bins:
+        ax.axvline(bin_edge, color='gray', linestyle=':', linewidth=0.7)
+
+    #grafico el valor de omega_0 y la media calculada con lineas verticales
+    ax.axvline(media, linestyle='--', color='blue', label=f"Media: {media:.2f} Hz")
+    ax.axvline(Omega_0, color='r', linestyle='--', label=rf"Valor central $\Omega_0 = {Omega_0:.1f}$ Hz")
+
+    # Números dentro de la barra para ver la cantidad de ocurrencias
+    for count, patch in zip(n, patches):
+        if count > 0:
+            x = patch.get_x() + patch.get_width() / 2
+            y = patch.get_height()
+            ax.text(x, y - 3, f"{int(count)}", ha='center', va='top', fontsize=9, color='white')
+    
+    #formato
+    ax.set_title(f"Ventana: {nombre}  |  Ancho de bin = {ancho_bin:.2f} Hz", pad=15)
+    ax.set_ylabel("Ocurrencias por bin")
+    ax.grid(True)
+    ax.legend()
+
+axs[-1].set_xlabel("Estimador $\hat{{\omega}}_1$")
+plt.xlim(x_min, x_max)
+plt.tight_layout()
+plt.show()
+
+#%% Cálculo de Sesgo, Varianza y MSE para cada ventana - estimador de amplitud
+"""El MSE, o Error Cuadrático Medio (Mean Squared Error), es una medida que combina sesgo y varianza en un
+solo número para evaluar la calidad de un estimador."""
+
+resultados_a1 = {} #creo dict para almacenar resultados
+
+for nombre, valores in estimadores_a1.items():
+    media = np.mean(valores)
+    sesgo = media - a1_real
+    varianza = np.var(valores)
+    mse = varianza + sesgo**2
+    resultados_a1[nombre] = {
+        'Sesgo': sesgo,
+        'Varianza': varianza,
+        'MSE': mse
+    }
+    
+#%% Cálculo de Sesgo, Varianza y MSE para cada ventana - estimador de frecuencia
+
+resultados_frec = {}  # Diccionario para guardar resultados
+
+for nombre, valores in estimadores_frecuencia.items():
+    media = np.mean(valores)
+    sesgo = media - Omega_0
+    varianza = np.var(valores)
+    mse = varianza + sesgo**2
+    resultados_frec[nombre] = {
+        'Sesgo': sesgo,
+        'Varianza': varianza,
+        'MSE': mse
+    }
+#%% Visualización en gráfico de barras
+
+# # Extraer datos por categoría
+# ventanas = list(resultados.keys())
+# sesgos = [resultados[v]['Sesgo'] for v in ventanas]
+# varianzas = [resultados[v]['Varianza'] for v in ventanas]
+# mses = [resultados[v]['MSE'] for v in ventanas]
+
+# x = np.arange(len(ventanas))  # posiciones en eje x
+# ancho = 0.25  # ancho de cada barra
+
+# fig, ax = plt.subplots(figsize=(10,6))
+# ax.bar(x - ancho, sesgos, width=ancho, label='Sesgo', color='skyblue')
+# ax.bar(x, varianzas, width=ancho, label='Varianza', color='orange')
+# ax.bar(x + ancho, mses, width=ancho, label='MSE', color='green')
+
+# ax.set_xticks(x)
+# ax.set_xticklabels(ventanas)
+# ax.set_ylabel("Valor")
+# ax.set_title("Comparación de Sesgo, Varianza y MSE para $\hat{a}_1$")
+# ax.legend()
+# ax.grid(True)
+# plt.tight_layout()
+# plt.show()
+#%% Visualización comparada de Sesgo, Varianza y MSE para ambos estimadores
+
+# Extraigo el nombre de las ventanas
+ventanas = list(resultados_a1.keys())
+
+# Estimador de amplitud
+sesgos_a1 = [resultados_a1[v]['Sesgo'] for v in ventanas]
+varianzas_a1 = [resultados_a1[v]['Varianza'] for v in ventanas]
+mses_a1 = [resultados_a1[v]['MSE'] for v in ventanas]
+
+# Estimador de frecuencia
+sesgos_w1 = [resultados_frec[v]['Sesgo'] for v in ventanas]
+varianzas_w1 = [resultados_frec[v]['Varianza'] for v in ventanas]
+mses_w1 = [resultados_frec[v]['MSE'] for v in ventanas]
+
+# Configuración del gráfico
+x = np.arange(len(ventanas))
+ancho = 0.25
+
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(14, 6), sharey=False)
+
+# --- Subplot 1: Estimador de amplitud ---
+ax1.bar(x - ancho, sesgos_a1, width=ancho, label='Sesgo', color='skyblue')
+ax1.bar(x, varianzas_a1, width=ancho, label='Varianza', color='orange')
+ax1.bar(x + ancho, mses_a1, width=ancho, label='MSE', color='green')
+
+ax1.set_xticks(x)
+ax1.set_xticklabels(ventanas, rotation=45)
+ax1.set_ylabel("Valor")
+ax1.set_title("Sesgo, Varianza y MSE para $\hat{a}_1$")
+ax1.legend()
+ax1.grid(True)
+
+# --- Subplot 2: Estimador de frecuencia ---
+ax2.bar(x - ancho, sesgos_w1, width=ancho, label='Sesgo', color='skyblue')
+ax2.bar(x, varianzas_w1, width=ancho, label='Varianza', color='orange')
+ax2.bar(x + ancho, mses_w1, width=ancho, label='MSE', color='green')
+
+ax2.set_xticks(x)
+ax2.set_xticklabels(ventanas, rotation=45)
+ax2.set_title("Sesgo, Varianza y MSE para $\hat{\Omega}_1$")
+ax2.legend()
+ax2.grid(True)
+
+plt.tight_layout()
+plt.show()
+
+
+
