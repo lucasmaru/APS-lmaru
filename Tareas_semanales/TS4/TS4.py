@@ -85,6 +85,7 @@ omega_0=1 veo lo que espero ver"""
 # plt.ylabel("Amplitud")
 # plt.title("Senoidal número 1")
 # plt.grid(True)
+# plt.show()
 #%% Genero el ruido para la señal
 # Para poder general la señal de ruido, tenemos que tener una distribucion normal con un N(o,sigma)
 
@@ -117,16 +118,16 @@ XF_norm = XF/np.max(np.abs(XF)) #normalizo
 frec = np.arange(-fs/2, fs/2, df)  # Eje de frec apropiado para el orden que impone fftshift
 
 #%% Graficamos la magnitud de la FFT para algunas señales
-for i in range(5): #no encuentro otra manera de poner las etiquetas sin el for
-    plt.plot(frec, 10 * np.log10(2 * np.abs(XF_norm[:, i])**2), label=f'Señal {i+1}')
+# for i in range(5): #no encuentro otra manera de poner las etiquetas sin el for
+#     plt.plot(frec, 10 * np.log10(2 * np.abs(XF_norm[:, i])**2), label=f'Señal {i+1}')
     
-plt.xlabel("Frecuencia (Hz)")
-plt.ylabel("Magnitud (dB)") 
-plt.title("FFT de varias señales")
-plt.grid(True)
-plt.legend()
-plt.tight_layout()
-plt.show()
+# plt.xlabel("Frecuencia (Hz)")
+# plt.ylabel("Magnitud (dB)") 
+# plt.title("FFT de varias señales")
+# plt.grid(True)
+# plt.legend()
+# plt.tight_layout()
+# plt.show()
 
 #%% Genero las ventanas flattop, blackmanharris, hamming y hann
 w_rect = np.ones((N,1))  # Ventana rectangular explícitada
@@ -206,21 +207,73 @@ for ax, (nombre, matriz_fft) in zip(axs, ventanas.items()):
     ax.grid(True)
     ax.legend()
 
+#%% Estimador de frecuencia
+
+# Diccionario para almacenar los resultados
+estimadores_frecuencia = {}
+
+"""Uso el diccionario ventanas y lo recorro con el primer for cada iteración almacena la clave en ""nombre" y el valor en
+"matriz_fft"". 
+Luego defino un vector prelocado con 200 ceros donde voy a almacenar los 200 valores del estimador que cada columna/señal 
+me devuelve.
+Luego con otro for itero 200 veces y en cada pasada me quedo con el índice correspondiente al valor máximo en módulo de
+cada fft. Evalúo el vector frec en el índice hallado y lo almaceno en el vector omega1_hat que cree para eso. Cuando termine 
+las 200 pasadas agrega al diccionario de los estimadores la clave "nombre" que lo extraje del diccionario windows y el ítem
+que es el vector con las 200 estimaciones. 
+Sale del segundo for, vuelve al primero, agarra la siguiente ventana y asì para cada item en "ventanas". """
+for nombre , matriz_fft in ventanas.items():
+    Omega1_hat = np.zeros(N_Test)
+    for i in range(N_Test):
+        id_max = np.argmax(np.abs(matriz_fft[:,i]))
+        Omega1_hat[i] = frec[id_max]
+    estimadores_frecuencia[nombre] = Omega1_hat
+    
 #%% Estimador de amplitud
+
 """Resto a todo el vector de frec[-500,-499,...,0,1,...,250,...,499] Omega_0 que es 250hz, entonces el vector 
 queda frec-250:[-750,-749,...,-250,-249,...,0,...,249], a esto le tomo el módulo, es decir la distancia entre 
 cada valor de de frecuencia con 250 => abs(frec-250):[750,749,...,250,249,...,0,...,249] y por último argmin
 devuelve el indice del valor mínimo del array que es el que ahora da 0 y que antes era 250.Tiene lógica porque 
 para usar fftshift ordenamos el array de frecuencia de [-500,500) como el indice 0 es -500 el indice 750 va a 
 ser el que corresponde a 250hz, en este caso ayuda que la df es 1 pero podrìa no ser entera y aún así este 
-método funcionaría"""
+método funcionaría."""
 idx_Omega0 = np.argmin(np.abs(frec - Omega_0))  #Busco el indice que corresponde a omega_0 que da 750
  
-
 """Calculo el módulo para cada espectro ventaneado de la fila 750 y para toda las columnas, ahi voy a tener 
-el valor del estimador para cada una de las 200 señales."""
-a1_rect = np.abs(XF[idx_Omega0, :])
-a1_flattop = np.abs(W_Flattop[idx_Omega0, :])
-a1_blackmanharris = np.abs(W_Blackmanharris[idx_Omega0, :])
-a1_hamming = np.abs(W_Hamming[idx_Omega0, :])
-a1_hann = np.abs(W_Hann[idx_Omega0, :])
+el valor del estimador para cada una de las 200 señales. Uso el diccionario ventanas al igual que en el 
+estimador de frecuencia."""
+estimadores_a1 = {}              # Diccionario para almacenar los resultados
+
+for nombre, matriz_fft in ventanas.items():
+    # Tomo el módulo del espectro evaluado en Omega_0 para cada señal (todas las columnas)
+    a1 = np.abs(matriz_fft[idx_Omega0, :])  # vector de 200 valores
+    estimadores_a1[nombre] = a1
+
+#%% Visualización de estimadores
+
+a1_real = A1
+
+#--- Gráfico combinado: histograma + promedio ---
+"""Almacena la figura gral en fig y tantos pares de ejes como cantidad de estimadores tengo en el dict 
+en axs (5 filas una columna, uno arriba del otro). Defino el tamaño y marco una linea con el valor real."""
+fig, axs = plt.subplots(len(estimadores_a1), 1, figsize=(10, 12)) 
+
+# Recorrer cada ventana y generar su histograma
+"""El for recorre cada subplot (ax) que fue creado por plt.subplots(...) y a la vez, recorre cada par clave,
+valor del diccionario estimadores_a1, que contiene los estimadores para cada ventana. Luego el zip junta las
+tres cosas. Por ejemplo las dos primeras iteraciónes de for tendrìan:
+[  (axs[0], ("Rectangular", valores_rect)), (axs[1], ("Hann", valores_hann)),  ...]
+"""
+for ax, (nombre, valores) in zip(axs, estimadores_a1.items()):
+    media = np.mean(valores)
+    ax.hist(valores, bins=30, alpha=0.7, label=nombre)
+    ax.axvline(media, linestyle='--', color='blue', label=f"Media: {media:.2f}")
+    ax.axvline(a1_real, color='r', linestyle='--', label=r"Valor real $a_1 = \sqrt{2}$")
+    ax.set_title(f"Ventana: {nombre}")
+    ax.set_ylabel("Ocurrencias por bin")
+    ax.grid(True)
+    ax.legend()
+
+axs[-1].set_xlabel("Estimador $\hat{{a}}_1$")
+plt.tight_layout()
+plt.show()
