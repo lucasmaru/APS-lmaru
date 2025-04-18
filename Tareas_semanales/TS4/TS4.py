@@ -346,45 +346,26 @@ for nombre, valores in estimadores_a1.items():
         'Varianza': varianza,
         'MSE': mse
     }
-    
+ 
 #%% Cálculo de Sesgo, Varianza y MSE para cada ventana - estimador de frecuencia
 
 resultados_frec = {}  # Diccionario para guardar resultados
 
+# Me aseguro de tener el vector de verdad (flatten para que sea 1D)
+Omega_1_flat = Omega_1.flatten()
+ 
 for nombre, valores in estimadores_frecuencia.items():
-    media = np.mean(valores)
-    sesgo = media - Omega_0
-    varianza = np.var(valores)
+    diferencias = valores - Omega_1_flat  # error de estimación muestra a muestra
+    sesgo = np.mean(diferencias)
+    #varianza = np.var(diferencias)
+    varianza = np.mean((diferencias - np.mean(diferencias))**2)
     mse = varianza + sesgo**2
     resultados_frec[nombre] = {
         'Sesgo': sesgo,
         'Varianza': varianza,
         'MSE': mse
     }
-#%% Visualización en gráfico de barras
 
-# # Extraer datos por categoría
-# ventanas = list(resultados.keys())
-# sesgos = [resultados[v]['Sesgo'] for v in ventanas]
-# varianzas = [resultados[v]['Varianza'] for v in ventanas]
-# mses = [resultados[v]['MSE'] for v in ventanas]
-
-# x = np.arange(len(ventanas))  # posiciones en eje x
-# ancho = 0.25  # ancho de cada barra
-
-# fig, ax = plt.subplots(figsize=(10,6))
-# ax.bar(x - ancho, sesgos, width=ancho, label='Sesgo', color='skyblue')
-# ax.bar(x, varianzas, width=ancho, label='Varianza', color='orange')
-# ax.bar(x + ancho, mses, width=ancho, label='MSE', color='green')
-
-# ax.set_xticks(x)
-# ax.set_xticklabels(ventanas)
-# ax.set_ylabel("Valor")
-# ax.set_title("Comparación de Sesgo, Varianza y MSE para $\hat{a}_1$")
-# ax.legend()
-# ax.grid(True)
-# plt.tight_layout()
-# plt.show()
 #%% Visualización comparada de Sesgo, Varianza y MSE para ambos estimadores
 
 # Extraigo el nombre de las ventanas
