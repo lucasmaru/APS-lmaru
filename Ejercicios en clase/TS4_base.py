@@ -193,24 +193,41 @@ ventanas = {
 
 """Defino el número de señales y creo un vector con 5 valores entre 0 y 199 
 equiespaciados y enteros""" 
-num_senales = 5
+num_senales = 1
 indices = np.linspace(0, N_Test-1, num_senales, dtype=int)
 
 """Creo 5 subplots de una sola columna y almaceno sus atributos en fig y axs.
 Además defino el tamaño y con sharex comparten el eje x para que se alineen."""
 #if mostrar_graficos:
-fig, axs = plt.subplots(len(ventanas), 1, figsize=(10, 12), sharex=True)
-"""Con un for recorro cada ax en axs y lo zipeo con el diccionario ""ventanas"
-esto me devuelve unos ejes con un nombre y su correspondiente matriz normalizada
-que recorro con otro for para generar los graficos de la cant de señales definida.
-"""
-for ax, (nombre, matriz_fft) in zip(axs, ventanas.items()):
-    for i in indices:
-        ax.plot(frec, 10 * np.log10(2 * np.abs(matriz_fft[:, i])**2), label=f'Señal {i+1}')
-    ax.set_title(f"Ventana: {nombre}")
-    ax.set_ylabel("Magnitud [dB]")
-    ax.grid(True)
-    ax.legend()
+#     fig, axs = plt.subplots(len(ventanas), 1, figsize=(10, 12), sharex=True)
+#     """Con un for recorro cada ax en axs y lo zipeo con el diccionario ""ventanas"
+#     esto me devuelve unos ejes con un nombre y su correspondiente matriz normalizada
+#     que recorro con otro for para generar los graficos de la cant de señales definida.
+#     """
+#     for ax, (nombre, matriz_fft) in zip(axs, ventanas.items()):
+#         for i in indices:
+#             ax.plot(frec, 10 * np.log10(2 * np.abs(matriz_fft[:, i])**2), label=f'Señal {i+1}')
+#         ax.set_title(f"Ventana: {nombre}")
+#         ax.set_ylabel("Magnitud [dB]")
+#         ax.grid(True)
+#         ax.legend()
+# Elegí el índice de la señal que querés ver (por ejemplo, la primera)
+i = 0  # Cambiá este valor para ver otra señal
+
+# Elegí la ventana que querés visualizar (cambiá esta línea para otra ventana)
+nombre_ventana = "Hamming"
+matriz_fft = W_Hamming_norm  # Cambiá esto por W_Hann_norm, W_Flattop_norm, etc.
+
+plt.figure(figsize=(8, 4))
+plt.plot(frec, 10 * np.log10(2 * np.abs(matriz_fft[:, i])**2), label=f'Ventana: {nombre_ventana}, Señal {i+1}')
+plt.title(f"Espectro para ventana {nombre_ventana}")
+plt.xlabel("Frecuencia (Hz)")
+plt.ylabel("Magnitud [dB]")
+plt.grid(True)
+plt.legend()
+plt.tight_layout()
+plt.show()
+
 
 #%% Estimador de frecuencia
 
