@@ -56,12 +56,12 @@ def experimento_adc(fo, fs, N, Vref, B, kn):
     
     plt.figure(2)
     plt.plot( ff[bfrec], 10* np.log10(2*np.abs(ft_Srq[bfrec])**2), lw=2, label='$ s_Q = Q_{B,V_F}\{s_R\}$' )
-    plt.plot( ff[bfrec], 10* np.log10(2*np.abs(ft_As[bfrec])**2), color='orange', ls='dotted', label='$ s $ (analógica)' )
-    plt.plot( ff[bfrec], 10* np.log10(2*np.abs(ft_SR[bfrec])**2), ':g', label='$ s_R = s + n $' )
+    #plt.plot( ff[bfrec], 10* np.log10(2*np.abs(ft_As[bfrec])**2), color='orange', label='$ s $ (analógica)' )
+    #plt.plot( ff[bfrec], 10* np.log10(2*np.abs(ft_SR[bfrec])**2), color='green',marker='+', label='$ s_R = s + n $' )
     plt.plot( np.array([ ff[bfrec][0], ff[bfrec][-1] ]), 10* np.log10(2* np.array([nNn_mean, nNn_mean]) ), '--r', label= '$ \overline{n_A} = $' + '{:3.1f} dB'.format(10* np.log10(2* nNn_mean)) )
     plt.plot( np.array([ ff[bfrec][0], ff[bfrec][-1] ]), 10* np.log10(2* np.array([Nnq_mean, Nnq_mean]) ), '--c', label='$ \overline{n_Q} = $' + '{:3.1f} dB'.format(10* np.log10(2* Nnq_mean)) )
-    plt.plot( ff[bfrec], 10* np.log10(2*np.abs(ft_Nn[bfrec])**2), ':r')
-    plt.plot( ff[bfrec], 10* np.log10(2*np.abs(ft_Nq[bfrec])**2), ':c')
+    plt.plot( ff[bfrec], 10* np.log10(2*np.abs(ft_Nn[bfrec])**2), ':k',label='Ruido analógico puro')
+    plt.plot( ff[bfrec], 10* np.log10(2*np.abs(ft_Nq[bfrec])**2), ':c',label='Ruido de quantización puro')
     plt.title('Señal muestreada por un ADC de {:d} bits - $\pm V_R= $ {:3.1f} V - q = {:3.3f} V'.format(B, Vref, q) )
     plt.ylabel('Densidad de Potencia [dB]')
     plt.xlabel('Frecuencia [Hz]')
@@ -75,4 +75,4 @@ def experimento_adc(fo, fs, N, Vref, B, kn):
     # plt.title( 'Ruido de cuantización para {:d} bits - $\pm V_R= $ {:3.1f} V - q = {:3.3f} V'.format(B, Vref, q))
     # plt.xlabel('Pasos de cuantización (q) [V]')
     
-experimento_adc(fo=1, fs=1000, N=1000, Vref=2.0, B=16, kn=1)
+experimento_adc(fo=1, fs=1000, N=1000, Vref=2.0, B=16, kn=0.01)
