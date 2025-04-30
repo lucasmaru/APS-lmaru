@@ -1,0 +1,26 @@
+import numpy as np
+import matplotlib.pyplot as plt
+
+# Frecuencia angular normalizada
+w0 = 1
+Q_values = [10, 3, 1, 0.707, 0.5]
+
+# Barrido de frecuencias (en radianes/seg)
+w = np.logspace(-2, 2, 1000)  # de 0.01 a 100 rad/s
+
+plt.figure(figsize=(8,5))
+
+for Q in Q_values:
+    # Evaluo la funcion de transferencia en j*w
+    s = 1j * w
+    H = (s**2) / (s**2 + (w0/Q)*s + w0**2)
+    plt.plot(w, 20 * np.log10(np.abs(H)), label=f"Q={Q}")
+
+plt.xscale('log')
+plt.title('Pasa altos de segundo orden para diferentes Q (ω₀=1)')
+plt.xlabel('ω [rad/s]')
+plt.ylabel('|H(jω)| [dB]')
+plt.grid(True, which='both', linestyle=':')
+plt.legend()
+plt.tight_layout()
+plt.show()

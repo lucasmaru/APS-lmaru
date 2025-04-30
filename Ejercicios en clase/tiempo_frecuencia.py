@@ -21,8 +21,8 @@ import matplotlib.pyplot as plt
 plt.close('all')
 
 # Parámetros generales
-f0_vec = [0.5, 500, 1000]  # 3 frecuencias distintas
-fs = 2000                # frecuencia de muestreo (Hz)
+f0_vec = [1, 499, 1000]  # 3 frecuencias distintas
+fs = 1000                # frecuencia de muestreo (Hz)
 N = 1000                 # número de muestras
 ts = 1/fs
 df = fs/N
@@ -38,7 +38,7 @@ for i, f0 in enumerate(f0_vec):
     fig, axs = plt.subplots(2, 1, figsize=(10, 6), constrained_layout=True)
 
     # Señal en el tiempo
-    axs[0].plot(tt, xx)
+    axs[0].stem(tt, xx,basefmt=" ")
     axs[0].set_title(f'Señal senoidal - f0 = {f0} Hz')
     axs[0].set_xlabel('Tiempo [s]')
     axs[0].set_ylabel('Amplitud')
