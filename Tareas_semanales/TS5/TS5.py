@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Created on Wed Nov  8 19:55:30 2023
+Created on Thu May  8 21:46:19 2025
 
-@author: mariano
+@author: lmaru
 """
 
 import numpy as np
@@ -27,9 +27,6 @@ mat_struct = sio.loadmat('./ECG_TP4.mat')
 ecg_one_lead = mat_struct['ecg_lead'].flatten()
 N = len(ecg_one_lead)
 
-hb_1 = mat_struct['heartbeat_pattern1']
-hb_2 = mat_struct['heartbeat_pattern2']
-
 # plt.figure()
 # plt.plot(ecg_one_lead[5000:12000])
 
@@ -41,9 +38,12 @@ hb_2 = mat_struct['heartbeat_pattern2']
 # plt.figure()
 # plt.plot(hb_2)
 
+ecg_potencia_unitaria = ecg_one_lead /np.std(ecg_one_lead) #normalizo en potencia
+
 nperseg = N // 50
 noverlap=nperseg//2
-f_ecg, PSD_ecg = sig.welch(ecg_one_lead, fs_ecg, window='hamming', nperseg=nperseg, noverlap=noverlap)
+f_ecg, PSD_ecg = sig.welch(ecg_potencia_unitaria, fs_ecg, window='hamming',
+                           nperseg=nperseg, noverlap=noverlap, detrend= 'linear')
 
 """
 Divido en 50 segmentos porque tengo muchos datos (aprox=1.100.000). Puedo disponer de muchos bloques 
@@ -51,7 +51,7 @@ para bajar la varianza, sin comprometer mucho la resolución espectral porque si
 cantidad de muestras por cada bloque. Con el noverlap al 50% duplico la cantidad de bloques solapando. 
 """
 PSD_ecg_db = 10 * np.log10(PSD_ecg) #Paso a dB
-PSD_ecg_db_norm= PSD_ecg_db - np.max(PSD_ecg_db)
+PSD_ecg_db_norm= PSD_ecg_db - np.max(PSD_ecg_db)#Normalizo respecto al máximo (pico en 0 dB)
 """
 Aplicamos una norma distinta a la que veniamos aplicando. En esta le resto el máximo valor a cada 
 valor de esta forma consigo que el pico de la señal quede siempre en 0dB. ¿Porque no normalizar la 
