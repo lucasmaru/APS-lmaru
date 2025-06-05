@@ -20,20 +20,10 @@ aprox_name = 'butter'
 
 filter_type = 'bandpass'
 
-if filter_type == 'lowpass':
-
-    # fpass = 1/2/np.pi #
-    fpass = 0.25
-    ripple = 0.5  # dB
-    fstop = 0.6  # Hz
-    attenuation = 40  # dB
-
-elif filter_type == 'bandpass':
-
-    fpass = np.array([1.0, 35.0])
-    ripple = 1  # dB
-    fstop = np.array([.1, 50.])
-    attenuation = 40  # dB
+fpass = np.array([1.0, 35.0])
+ripple = 1  # dB
+fstop = np.array([.1, 50.])
+attenuation = 40  # dB
 
 #%% DISEÑO Y TESTEO
 fs = 1000
@@ -56,19 +46,21 @@ de frec con espaciamiento logarítmico creada especialemnte para ver con mejor r
 entre 0 y 0,1 hz
 """
 
-w, hh = sig.sosfreqz(mi_sos, wrad)
+w, hh = sig.sosfreqz(mi_sos, npoints)
 
 """
 sosfreqz levanta la respuesta en frecuencia del filtro, calcula módulo y fase y hace un barrido númerico
 de nponits puntos de 0 a pi, es decir un barrido de frecuencia con 1000 valores entre 0 y pi. En hh nos
 llevamos un vector de complejos donde esta el módulo y la fase y w es el que va a hacer de eje x. 
 """
+plt.figure(1)
+plt.subplot(2,1,1)
 plt.plot(w/np.pi*fs/2, 20*np.log10(np.abs(hh)), label='mi_sos')
 """
 El gráfico va de 0 a pi, lo divide por pi para llevarlo de 0 a 1 y por último multiplica por fs/s 
 para llevarlo de 0 a Niquist 
 """
-plt.title('Plantilla de diseño')
+plt.title('Plantilla de diseño (respuesta de módulo)')
 plt.xlabel('Frecuencia normalizada a Nyq [#]')
 plt.ylabel('Amplitud [dB]')
 plt.grid(which='both', axis='both')
@@ -77,18 +69,28 @@ plot_plantilla(filter_type=filter_type, fpass=fpass, ripple=ripple,
                fstop=fstop, attenuation=attenuation, fs=fs)
 plt.legend()
 
+plt.subplot(2,1,2)
+fase = np.unwrap(np.angle(hh))#unwrap desenrrolla la fase quita las discontinuidades
+demora = -np.diff(fase) / np.diff(w/np.pi*fs/2)
+w_med = (w[1:] + w[:-1]) / 2  # promedio entre cada par de muestras de w
+plt.plot(w/np.pi*fs/2, fase, label='Fase') 
+plt.plot(w_med/np.pi*fs/2, demora, label='Demora') 
+plt.xlabel('Frecuencia [Hz]')
+plt.ylabel('Fase')
+plt.legend()
+
 #%% LECTURA DE DATOS Y FILTRADO DEL ECG
 fs_ecg = 1000 # Hz, la frecuencia de muestreo a la que fue sampleada la señal del archivo
 mat_struct = sio.loadmat('./ECG_TP4.mat') #Leo el archivo
 ECG = mat_struct['ecg_lead'].flatten() #Tomo la parte que quiero
 #ecg_one_lead = ecg_one_lead[:12000] #Nos quedamos con una parte del espectro limpia pero significativa
 N_ECG = len(ECG)
-ECG_filt = sig.sosfiltfilt(mi_sos,ECG)
+ECG_filt = sig.sosfilt(mi_sos,ECG)
 
 #%%VISUALIZACIÒN
 t = np.arange(N_ECG) / fs_ecg  # Vector de tiempo
 
-plt.figure(figsize=(12, 6))
+plt.figure(2,figsize=(12, 6))
 
 #plt.subplot(2, 1, 1)
 plt.plot(t[1200:], ECG[1200:], label='ECG original')
@@ -108,3 +110,4 @@ plt.legend()
 
 plt.tight_layout()
 plt.show()
+#%%
