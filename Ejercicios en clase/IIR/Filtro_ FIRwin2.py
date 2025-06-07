@@ -22,10 +22,15 @@ fstop = np.array([.1, 50.])
 attenuation = 40  # dB
 #%% DISEÑO Y TESTEO
 fs = 1000
-cant_coef = 90002 #Orden cant_coef - 1
+cant_coef = 25002 #Orden = cant_coef - 1, el orden impar
 window ='hamming'
-mi_fir = sig.firwin(numtaps=cant_coef, cutoff=fpass, window=window,
-                    pass_zero=False, fs=fs)
+
+
+freq = [0, 0.1, 1.0, 35.0, 50.0, fs/2]
+gain = [0, 0, 1, 1, 0, 0]
+
+mi_fir = sig.firwin2(numtaps=cant_coef, freq=freq, gain=gain, fs=fs, window='hamming')
+
 
 """
 mi_sos es una matriz de 15 filas por tanto el filtro diseñado es de orden 30. Los FIR necesitan más orden
