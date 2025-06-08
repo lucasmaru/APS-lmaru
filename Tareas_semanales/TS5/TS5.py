@@ -44,20 +44,20 @@ def blackman_tukey(x, fs, M=None):
 fs_ecg = 1000 # Hz, la frecuencia de muestreo a la que fue sampleada la señal del archivo
 mat_struct = sio.loadmat('./ECG_TP4.mat') #Leo el archivo
 ecg_one_lead = mat_struct['ecg_lead'].flatten() #Tomo la parte que quiero
-ecg_one_lead = ecg_one_lead[:12000] #Nos quedamos con una parte del espectro limpia pero significativa
+ecg_one_lead = ecg_one_lead[:] #Nos quedamos con una parte del espectro limpia pero significativa
 N_ecg = len(ecg_one_lead)
 
 ##Welch##
-nperseg = N_ecg // 20  #cantidad de segmentos
+nperseg = N_ecg // 550  #cantidad de segmentos
 noverlap = nperseg//2 #solapamiento
 f_ecg, PSD_ecg = sig.welch(ecg_one_lead, fs_ecg, window='hamming',
                     nperseg=nperseg, noverlap=noverlap, detrend='constant')
 """
-Divido en 50 segmentos porque tengo muchos datos (aprox=1.100.000). Puedo disponer de muchos bloques 
-para bajar la varianza, sin comprometer mucho la resolución espectral porque sigo teniendo buena
-cantidad de muestras por cada bloque. Con el noverlap al 50% duplico la cantidad de bloques solapando.
-Inicialmente trabajabamos con todos los datos, luego nos quedamos con 12.000, por eso baje de 50 a 10
-segmentos. 
+Divido en 550 segmentos porque tengo muchos datos (aprox=1.100.000). Puedo disponer de muchos 
+bloques para bajar la varianza, sin comprometer mucho la resolución espectral porque sigo 
+teniendo buena cantidad de muestras por cada bloque. Con el noverlap al 50% duplico la cantidad
+de bloques solapando. Con estos parametros tengo una resolución espectral por bloque de 
+aproximadamente 0,5 Hz, pues df=fs/2052 = 0,48 Hz.
 """
 PSD_ecg_db = 10 * np.log10(PSD_ecg) #Paso a dB
 PSD_ecg_db_norm= PSD_ecg_db - np.max(PSD_ecg_db)#Normalizo respecto al máximo (pico en 0 dB)
@@ -70,11 +70,11 @@ las que distrubuir ese único Watt.
 """
 
 ##Blackman-Tukey##
-f_ecg_bt, PSD_bt, PSD_db_bt = blackman_tukey(ecg_one_lead, fs=fs_ecg, M=N_ecg//5) #Blackman-Tukey
+f_ecg_bt, PSD_bt, PSD_db_bt = blackman_tukey(ecg_one_lead, fs=fs_ecg, M=1000) #Blackman-Tukey
 PSD_db_bt_norm = PSD_db_bt - np.max(PSD_db_bt) #Normalizo respecto al máximo (pico en 0 dB)
 
 ##Estimación ancho de banda Welch##
-porcentaje = 0.95
+porcentaje = 0.98
 pot_total_welch =np.sum(PSD_ecg)
 pot_acumulada_welch = np.cumsum(PSD_ecg) / pot_total_welch  # ahora ya es proporción
 i = np.argmax(pot_acumulada_welch >= porcentaje)  # primer índice que supera el %
@@ -107,9 +107,9 @@ plt.vlines(x=frec_buscada_bt,ymin=-70,ymax=0,colors='black',linestyles='dashdot'
 plt.legend()
 plt.grid(True)
 
-#%%####################
-#Pletismografía (PPG)##
-#######################
+# #%%####################
+# #Pletismografía (PPG)##
+# #######################
 
 """La pletismografía es una técnica para medir variaciones en el volumen de un órgano o parte del cuerpo, 
 generalmente relacionadas con el flujo sanguíneo (oximetro de pulso). Cuando hablamos de PPG (sigla de 
@@ -134,7 +134,7 @@ f_ppg_bt, PSD_bt, PSD_db_bt = blackman_tukey(ppg, fs=fs_ppg) #Blackman-Tukey
 PSD_db_bt_norm = PSD_db_bt - np.max(PSD_db_bt) #Normalizo respecto al máximo (pico en 0 dB)
 
 ##Estimación ancho de banda Welch##
-porcentaje = 0.95
+porcentaje = 0.98
 pot_total_welch =np.sum(PSD_ppg)
 pot_acumulada_welch = np.cumsum(PSD_ppg) / pot_total_welch  # ahora ya es proporción
 i = np.argmax(pot_acumulada_welch >= porcentaje)  # primer índice que supera el %
