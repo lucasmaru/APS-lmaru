@@ -58,21 +58,19 @@ if GRAFICAR:
 fs = 1000  # Hz
 nyq = fs / 2  # Frecuencia de Nyquist
 
-# Banda de atenuación (fuera de lo útil)
+# Banda de atenuación (fuera de lo últil)
 f_stop = np.array([.1, 50.])  # Hz
 
-# Banda pasante deseada (contenido útil del ECG)
+# Banda pasante deseada (contenido últil del ECG)
 f_pass = np.array([1.0, 30.0])  # Hz
 
-# Ripple permitido en la banda pasante
-ripple_db = 1  # dB
+# Ripple y atenuación para IIR (uso de filtfilt)
+ripple_iir_db = 0.5  # dB
+atten_iir_db = 20    # dB
 
-# Atenuación mínima en la banda de stop
-atten_db = 40  # dB
-
-# Normalizar frecuencias para diseño (frecuencias normalizadas entre 0 y 1)
-wp = np.array(f_pass) / nyq
-wa = np.array(f_stop) / nyq
+# Ripple y atenuación para FIR (uso de lfilt)
+ripple_fir_db = 1  # dB
+atten_fir_db = 40  # dB
 
 #%% PLANTILLA DE DISEÑO
 
@@ -83,13 +81,13 @@ if GRAFICAR:
     # zonas de paso y rechazo para un filtro determinado, como acá solo queremos la plantilla
     # vacía es necesario establecer manualmente los límites para que plt.axis() funcione
     # bien dentro de plot_plantilla
-    plt.axis([0, fs / 2, -atten_db - 10, ripple_db + 5])
+    plt.axis([0, fs / 2, -atten_fir_db - 10, ripple_fir_db + 5])
     
     plot_plantilla(filter_type='bandpass',
                fpass=f_pass,
-               ripple=ripple_db,
+               ripple=ripple_fir_db,
                fstop=f_stop,
-               attenuation=atten_db,
+               attenuation=atten_fir_db,
                fs=fs)
     
     plt.title("Plantilla de diseño para el filtrado del ECG")
@@ -133,9 +131,9 @@ def graficar_filtro_sos(sos, fs, f_pass, f_stop, ripple_db, atten_db, etiqueta='
 #%% DISEÑO IIR - CHEBY2 + CAUER
 
 # Diseño del filtro en formato SOS
-mi_iir_1 = sig.iirdesign(wp=f_pass, ws=f_stop, gpass=ripple_db, gstop=atten_db,
+mi_iir_1 = sig.iirdesign(wp=f_pass, ws=f_stop, gpass=ripple_iir_db, gstop=atten_iir_db,
                          analog=False, ftype='cheby2', output='sos', fs=fs)
-mi_iir_2 = sig.iirdesign(wp=f_pass, ws=f_stop, gpass=ripple_db, gstop=atten_db,
+mi_iir_2 = sig.iirdesign(wp=f_pass, ws=f_stop, gpass=ripple_iir_db, gstop=atten_iir_db,
                          analog=False, ftype='ellip', output='sos', fs=fs)
 
 # Grilla para barrido en frecuencia
@@ -144,8 +142,8 @@ w, hh = sig.sosfreqz(mi_iir_1, worN=2048, fs=fs)
 # Gráfico módulo y fase
 
 if GRAFICAR:
-    graficar_filtro_sos(mi_iir_1, fs, f_pass, f_stop, ripple_db, atten_db, etiqueta='IIR - Cheby2')
-    graficar_filtro_sos(mi_iir_2, fs, f_pass, f_stop, ripple_db, atten_db, etiqueta='IIR - Cauer')
+    graficar_filtro_sos(mi_iir_1, fs, f_pass, f_stop, ripple_iir_db, atten_iir_db, etiqueta='IIR - Cheby2')
+    graficar_filtro_sos(mi_iir_2, fs, f_pass, f_stop, ripple_iir_db, atten_iir_db, etiqueta='IIR - Cauer')
 
 #%% FUNCIÓN: GRAFICAR RESPUESTA FIR
 def graficar_fir(fir_coefs, fs, f_pass, f_stop, ripple_db, atten_db, etiqueta='FIR'):
@@ -180,57 +178,82 @@ def graficar_fir(fir_coefs, fs, f_pass, f_stop, ripple_db, atten_db, etiqueta='F
     plt.tight_layout()
     plt.show()
 
-#%% DISEÑO FIR - FIRWIN2 Y FIRLS
+#%% DISEÑO FIR - FIRWIN2 y FIRWIN1
 
-# Orden común para ambos )
-cant_coef_firwin2 = 22501 # Orden = cant_coef - 1
-cant_coef_firls = 3001
-orden_firwin2 = cant_coef_firwin2 - 1
-orden_firls = cant_coef_firls - 1
+cant_coef_firwin2 = 22501
+cant_coef_firwin = 55501
 
-# Grilla de diseño (Hz)
 freq = [0, f_stop[0], f_pass[0], f_pass[1], f_stop[1], fs/2]
 gain = [0, 0, 1, 1, 0, 0]
 
-# FIR con firwin2 y ventana Hamming
-mi_fir_1 = sig.firwin2(numtaps=cant_coef_firwin2, freq=freq, gain=gain, fs=fs, window='hamming')
-
-# FIR con cuadrados mínimos (firls)
-mi_fir_2 = sig.firls(numtaps=cant_coef_firls , bands=freq, desired=gain, fs=fs)
-
+mi_fir_1 = sig.firwin2(numtaps=cant_coef_firwin2, freq=freq, gain=gain, fs=fs,
+                       window='hamming')
+mi_fir_2 = sig.firwin(numtaps=cant_coef_firwin, cutoff=f_pass, window='hamming',
+                      pass_zero=False, fs=fs)
 
 
 if GRAFICAR:
-    graficar_fir(mi_fir_1, fs, f_pass, f_stop, ripple_db, atten_db, etiqueta='FIR - firwin2 (Hamming)')
-    graficar_fir(mi_fir_2, fs, f_pass, f_stop, ripple_db, atten_db, etiqueta='FIR - firls')
+    graficar_fir(mi_fir_1, fs, f_pass, f_stop, ripple_fir_db, atten_fir_db, etiqueta='FIR - firwin2 (Hamming)')
+graficar_fir(mi_fir_2, fs, f_pass, f_stop, ripple_fir_db, atten_fir_db, etiqueta='FIR - firwin (Blackman)')
 
 #%% APLICACIÓN DE LOS FILTROS Y COMPARACIÓN VISUAL
 
-# Aplicación de los filtros IIR (en forma SOS, con corrección de fase)
 ecg_iir_cheby2 = sig.sosfiltfilt(mi_iir_1, ecg_one_lead)
 ecg_iir_ellip = sig.sosfiltfilt(mi_iir_2, ecg_one_lead)
 
-# Aplicación de los filtros FIR (convolución sin retardo de fase)
-ecg_fir_firwin2 = sig.filtfilt(mi_fir_1, [1], ecg_one_lead)
-ecg_fir_firls = sig.filtfilt(mi_fir_2, [1], ecg_one_lead)
+ecg_fir_firwin2 = sig.lfilter(mi_fir_1, [1], ecg_one_lead)
+ecg_fir_firwin = sig.lfilter(mi_fir_2, [1], ecg_one_lead)
 
-# Ventana de tiempo para zoom (e.g., primeros 3 segundos)
-t_ecg = np.arange(N_ecg) / fs_ecg
-t_ini, t_fin = 0, 3
-idx_ini, idx_fin = int(t_ini * fs_ecg), int(t_fin * fs_ecg)
+# t_ecg = np.arange(N_ecg) / fs_ecg
+# t_ini, t_fin = 0, N_ecg / fs_ecg
+# idx_ini, idx_fin = int(t_ini * fs_ecg), int(t_fin * fs_ecg)
 
-# Plot
-plt.figure(figsize=(12, 6))
-plt.plot(t_ecg[idx_ini:idx_fin], ecg_one_lead[idx_ini:idx_fin], label="ECG crudo", color='gray', linewidth=1)
-plt.plot(t_ecg[idx_ini:idx_fin], ecg_iir_cheby2[idx_ini:idx_fin], label="IIR - Cheby2", linewidth=1)
-plt.plot(t_ecg[idx_ini:idx_fin], ecg_iir_ellip[idx_ini:idx_fin], label="IIR - Cauer", linewidth=1)
-plt.plot(t_ecg[idx_ini:idx_fin], ecg_fir_firwin2[idx_ini:idx_fin], label="FIR - firwin2", linewidth=1)
-plt.plot(t_ecg[idx_ini:idx_fin], ecg_fir_firls[idx_ini:idx_fin], label="FIR - firls", linewidth=1)
+# plt.figure(figsize=(12, 6))
+# plt.plot(t_ecg[idx_ini:idx_fin], ecg_one_lead[idx_ini:idx_fin], label="ECG crudo",
+#          color='gray', linewidth=1)
+# plt.plot(t_ecg[idx_ini:idx_fin], ecg_iir_cheby2[idx_ini:idx_fin], label="IIR - Cheby2",
+#          linewidth=1, alpha=0.5)
+# plt.plot(t_ecg[idx_ini:idx_fin], ecg_iir_ellip[idx_ini:idx_fin], label="IIR - Cauer",
+#          linewidth=1, alpha=0.5)
+# plt.plot(t_ecg[idx_ini:idx_fin], ecg_fir_firwin2[idx_ini:idx_fin], label="FIR - firwin2",
+#          linewidth=1, alpha=0.5)
+# plt.plot(t_ecg[idx_ini:idx_fin], ecg_fir_firwin[idx_ini:idx_fin], label="FIR - firwin", 
+#          color='red', linewidth=1, alpha=0.5)
+# plt.title("Comparación de la señal ECG filtrada con distintos métodos")
+# plt.xlabel("Tiempo [s]")
+# plt.ylabel("Amplitud")
+# plt.legend()
+# plt.grid()
+# plt.tight_layout()
+# plt.show()
 
-plt.title("Comparación de la señal ECG filtrada con distintos métodos")
-plt.xlabel("Tiempo [s]")
-plt.ylabel("Amplitud")
-plt.legend()
-plt.grid()
-plt.tight_layout()
-plt.show()
+#%%###############################
+## Regiones de interés con ruido #
+##################################
+ 
+regs_interes = (
+        [4000, 5500], # muestras
+        [10e3, 11e3], # muestras
+        )
+ 
+for ii in regs_interes:
+   
+    # intervalo limitado de 0 a cant_muestras
+    zoom_region = np.arange(np.max([0, ii[0]]), np.min([N_ecg, ii[1]]), dtype='uint')
+   
+    plt.figure(1)
+    plt.plot(zoom_region, ecg_one_lead[zoom_region], label='ECG', linewidth=2)
+    plt.plot(zoom_region, ecg_iir_cheby2[zoom_region], label='IIR - cheby2')
+    #plt.plot(zoom_region, ecg_iir_ellip[zoom_region + demora], label='IIR - ellip')
+    #plt.plot(zoom_region, ecg_fir_firwin2[zoom_region + demora], label='FIR - firwin2 (haming)')
+    #plt.plot(zoom_region, ecg_fir_firwin[zoom_region + demora], label='FIR - firwin (blackman)')
+   
+    plt.title('ECG filtering example from ' + str(ii[0]) + ' to ' + str(ii[1]) )
+    plt.ylabel('Adimensional')
+    plt.xlabel('Muestras (#)')
+   
+    axes_hdl = plt.gca()
+    axes_hdl.legend()
+    axes_hdl.set_yticks(())
+           
+    plt.show()
