@@ -203,29 +203,30 @@ ecg_iir_ellip = sig.sosfiltfilt(mi_iir_2, ecg_one_lead)
 
 ecg_fir_firwin2 = sig.lfilter(mi_fir_1, [1], ecg_one_lead)
 ecg_fir_firwin = sig.lfilter(mi_fir_2, [1], ecg_one_lead)
+# Guardar las señales filtradas individualmente
+np.save("ecg_iir_cheby2.npy", ecg_iir_cheby2)
+t_ecg = np.arange(N_ecg) / fs_ecg
+t_ini, t_fin = 0, N_ecg / fs_ecg
+idx_ini, idx_fin = int(t_ini * fs_ecg), int(t_fin * fs_ecg)
 
-# t_ecg = np.arange(N_ecg) / fs_ecg
-# t_ini, t_fin = 0, N_ecg / fs_ecg
-# idx_ini, idx_fin = int(t_ini * fs_ecg), int(t_fin * fs_ecg)
-
-# plt.figure(figsize=(12, 6))
-# plt.plot(t_ecg[idx_ini:idx_fin], ecg_one_lead[idx_ini:idx_fin], label="ECG crudo",
-#          color='gray', linewidth=1)
-# plt.plot(t_ecg[idx_ini:idx_fin], ecg_iir_cheby2[idx_ini:idx_fin], label="IIR - Cheby2",
-#          linewidth=1, alpha=0.5)
+plt.figure(figsize=(12, 6))
+plt.plot(t_ecg[idx_ini:idx_fin], ecg_one_lead[idx_ini:idx_fin], label="ECG crudo",
+         color='gray', linewidth=1)
+plt.plot(t_ecg[idx_ini:idx_fin], ecg_iir_cheby2[idx_ini:idx_fin], label="IIR - Cheby2",
+         linewidth=1, alpha=0.5)
 # plt.plot(t_ecg[idx_ini:idx_fin], ecg_iir_ellip[idx_ini:idx_fin], label="IIR - Cauer",
 #          linewidth=1, alpha=0.5)
 # plt.plot(t_ecg[idx_ini:idx_fin], ecg_fir_firwin2[idx_ini:idx_fin], label="FIR - firwin2",
 #          linewidth=1, alpha=0.5)
 # plt.plot(t_ecg[idx_ini:idx_fin], ecg_fir_firwin[idx_ini:idx_fin], label="FIR - firwin", 
 #          color='red', linewidth=1, alpha=0.5)
-# plt.title("Comparación de la señal ECG filtrada con distintos métodos")
-# plt.xlabel("Tiempo [s]")
-# plt.ylabel("Amplitud")
-# plt.legend()
-# plt.grid()
-# plt.tight_layout()
-# plt.show()
+plt.title("Comparación de la señal ECG filtrada con distintos métodos")
+plt.xlabel("Tiempo [s]")
+plt.ylabel("Amplitud")
+plt.legend()
+plt.grid()
+plt.tight_layout()
+plt.show()
 
 #%%###############################
 ## Regiones de interés con ruido #
@@ -241,19 +242,19 @@ for ii in regs_interes:
     # intervalo limitado de 0 a cant_muestras
     zoom_region = np.arange(np.max([0, ii[0]]), np.min([N_ecg, ii[1]]), dtype='uint')
    
-    plt.figure(1)
-    plt.plot(zoom_region, ecg_one_lead[zoom_region], label='ECG', linewidth=2)
-    plt.plot(zoom_region, ecg_iir_cheby2[zoom_region], label='IIR - cheby2')
-    #plt.plot(zoom_region, ecg_iir_ellip[zoom_region + demora], label='IIR - ellip')
-    #plt.plot(zoom_region, ecg_fir_firwin2[zoom_region + demora], label='FIR - firwin2 (haming)')
-    #plt.plot(zoom_region, ecg_fir_firwin[zoom_region + demora], label='FIR - firwin (blackman)')
+    # plt.figure(1)
+    # plt.plot(zoom_region, ecg_one_lead[zoom_region], label='ECG', linewidth=2)
+    # plt.plot(zoom_region, ecg_iir_cheby2[zoom_region], label='IIR - cheby2')
+    # #plt.plot(zoom_region, ecg_iir_ellip[zoom_region + demora], label='IIR - ellip')
+    # #plt.plot(zoom_region, ecg_fir_firwin2[zoom_region + demora], label='FIR - firwin2 (haming)')
+    # #plt.plot(zoom_region, ecg_fir_firwin[zoom_region + demora], label='FIR - firwin (blackman)')
    
-    plt.title('ECG filtering example from ' + str(ii[0]) + ' to ' + str(ii[1]) )
-    plt.ylabel('Adimensional')
-    plt.xlabel('Muestras (#)')
+    # plt.title('ECG filtering example from ' + str(ii[0]) + ' to ' + str(ii[1]) )
+    # plt.ylabel('Adimensional')
+    # plt.xlabel('Muestras (#)')
    
-    axes_hdl = plt.gca()
-    axes_hdl.legend()
-    axes_hdl.set_yticks(())
+    # axes_hdl = plt.gca()
+    # axes_hdl.legend()
+    # axes_hdl.set_yticks(())
            
-    plt.show()
+    #plt.show()
