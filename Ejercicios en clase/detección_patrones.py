@@ -72,7 +72,7 @@ umbral = 0.15  # ahora es 60% de 1
 
 
 picos_filt,_ = sig.find_peaks(correlacion_filt, height=umbral, distance=dist_min)
-
+latidos = mat_struct['qrs_detections'].flatten()
 GRAFICAR_2= True
 if GRAFICAR_2:
     plt.figure(figsize=(12, 4))
