@@ -1,2 +1,5 @@
-Clases/
-Clases/
+Final/**/*.wav
+**/.ipynb_checkpoints/
+*.pyc
+__pycache__/
+*~
